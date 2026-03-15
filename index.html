@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Saga Evolution (25 Razas & Fondos)</title>
+<title>NeoPixel Pet: Saga Evolution (25 Razas & Fondos Mejorados)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -195,7 +195,7 @@ function resetEverything() {
 
 // --- ESTADO INICIAL ---
 const state = {
-  name: 'Doggo', breed: 'husky', bg: 'bg_dark', // <-- Se añade guardado de fondo aquí
+  name: 'Doggo', breed: 'husky', bg: 'bg_dark',
   hunger: 100, energy: 100, clean: 100, happy: 100, xp: 0, lv: 1,
   anim: 'idle', tick: 0, frame: 0, busy: false
 };
@@ -231,96 +231,166 @@ const gamesConfig = {
 let gameIntervals = [];
 const canvas = document.getElementById('petCanvas');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
+// --- DIBUJO PROFESIONAL CON FONDOS Y ARTE REDONDEADO ---
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
-  // --- DIBUJAR FONDO DINÁMICO ---
+  // DIBUJAR FONDO
   if(state.bg === 'bg_house') {
-      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200); // Pared
-      ctx.fillStyle = '#fde68a'; ctx.fillRect(30, 40, 60, 70); // Ventana
-      ctx.fillStyle = '#fbbf24'; ctx.fillRect(25, 35, 70, 5); ctx.fillRect(25, 110, 70, 5); // Marco ventana
-      ctx.fillStyle = '#78350f'; ctx.fillRect(0, 200, 250, 50); // Piso madera
-      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.ellipse(125, 225, 80, 15, 0, 0, Math.PI*2); ctx.fill(); // Alfombra
+      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(30, 40, 60, 70);
+      ctx.fillStyle = '#fbbf24'; ctx.fillRect(25, 35, 70, 5); ctx.fillRect(25, 110, 70, 5); ctx.fillRect(60, 35, 5, 80);
+      ctx.fillStyle = '#78350f'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
+      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.ellipse(125, 225, 80, 15, 0, 0, Math.PI*2); ctx.fill();
   } else if(state.bg === 'bg_park') {
-      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200); // Cielo
-      ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(200, 40, 25, 0, Math.PI*2); ctx.fill(); // Sol
-      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, 200, 250, 50); // Pasto
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(200, 40, 25, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   } else {
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200); // Clásico oscuro
-      ctx.fillStyle = '#111827'; ctx.fillRect(0, 200, 250, 50); // Piso oscuro
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   }
 
+  const PERSPECTIVE_FLOOR_Y = 200;
   const isAdult = state.lv >= 10;
-  const scale = isAdult ? 1.35 : 1.0;
+  const tiredMod = state.energy < 30 ? 0.05 : 0.15;
   const isTired = state.energy < 30;
   
-  let bounce = Math.sin(state.tick * (isTired ? 0.05 : 0.15)) * 4;
+  let bounce = Math.sin(state.tick * tiredMod) * 4;
   if (state.anim === 'play') bounce = -Math.abs(Math.sin(state.tick * 0.3) * 60);
 
-  ctx.save();
-  ctx.translate(110, 140 + bounce);
-  ctx.scale(scale, scale);
-
-  if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)';
-
+  // Paletas de colores
   const colors = {
-    husky: ['#475569', '#f8fafc', '#22d3ee'],
-    yorkie: ['#78350f', '#fbbf24', '#000'],
-    poodle: ['#fdf4ff', '#f0abfc', '#000'],
-    bulldog: ['#a67c52', '#451a03', '#000'],
-    labrador: ['#fbbf24', '#fef08a', '#000'],
-    pug: ['#d4d4d8', '#000000', '#000'],
-    chihuahua: ['#fcd34d', '#fef3c7', '#000'],
-    doberman: ['#1c1917', '#b45309', '#000'],
-    beagle: ['#b45309', '#ffffff', '#000'],
-    dalmatian: ['#ffffff', '#000000', '#000'],
-    rottweiler: ['#000000', '#92400e', '#000'],
-    shiba: ['#ea580c', '#ffffff', '#000'],
-    corgi: ['#f59e0b', '#ffffff', '#000'],
-    boxer: ['#b45309', '#000000', '#000'],
-    dane: ['#78716c', '#1c1917', '#000'],
-    schnauzer: ['#a8a29e', '#d6d3d1', '#000'],
-    dachshund: ['#78350f', '#451a03', '#000'],
-    pomeranian: ['#f97316', '#ffedd5', '#000'],
-    shihtzu: ['#e7e5e4', '#78716c', '#000'],
-    collie: ['#000000', '#ffffff', '#000'],
-    basset: ['#92400e', '#f5f5f4', '#000'],
-    chow: ['#b45309', '#78350f', '#000'],
-    mastiff: ['#a67c52', '#1c1917', '#000'],
-    greyhound: ['#d6d3d1', '#f5f5f4', '#000'],
+    husky: ['#475569', '#f8fafc', '#22d3ee'], yorkie: ['#78350f', '#fbbf24', '#000'],
+    poodle: ['#fdf4ff', '#f0abfc', '#000'], bulldog: ['#a67c52', '#451a03', '#000'],
+    labrador: ['#fbbf24', '#fef08a', '#000'], pug: ['#d4d4d8', '#000000', '#000'],
+    chihuahua: ['#fcd34d', '#fef3c7', '#000'], doberman: ['#1c1917', '#b45309', '#000'],
+    beagle: ['#b45309', '#ffffff', '#000'], dalmatian: ['#ffffff', '#000000', '#000'],
+    rottweiler: ['#000000', '#92400e', '#000'], shiba: ['#ea580c', '#ffffff', '#000'],
+    corgi: ['#f59e0b', '#ffffff', '#000'], boxer: ['#b45309', '#000000', '#000'],
+    dane: ['#78716c', '#1c1917', '#000'], schnauzer: ['#a8a29e', '#d6d3d1', '#000'],
+    dachshund: ['#78350f', '#451a03', '#000'], pomeranian: ['#f97316', '#ffedd5', '#000'],
+    shihtzu: ['#e7e5e4', '#78716c', '#000'], collie: ['#000000', '#ffffff', '#000'],
+    basset: ['#92400e', '#f5f5f4', '#000'], chow: ['#b45309', '#78350f', '#000'],
+    mastiff: ['#a67c52', '#1c1917', '#000'], greyhound: ['#d6d3d1', '#f5f5f4', '#000'],
     bernard: ['#78350f', '#ffffff', '#000']
   }[state.breed];
 
-  ctx.fillStyle = colors[0];
-  ctx.fillRect(0, 15, 65, 45); 
-  ctx.fillRect(60, 10, 10, 20);
-  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18);
+  const bx = 110, by = 135;
 
   ctx.save();
-  let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 10 : 0;
-  ctx.translate(5, 20 + headY);
+  ctx.translate(bx, by + bounce);
 
-  ctx.fillStyle = colors[0];
-  ctx.fillRect(-42, -52, 12, 15);
-  ctx.fillRect(-8, -52, 12, 15); 
+  if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)';
 
-  ctx.fillStyle = colors[0];
-  ctx.fillRect(-45, -45, 50, 50); 
+  // --- DIBUJO CACHORRO (LV 1-9) O ADULTO (LV 10+) ---
+  if (!isAdult) {
+    // DISEÑO CACHORRO (Tierno, pequeño, redondito)
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(25, 45, 20, 5, 0, 0, Math.PI*2); ctx.fill();
+    
+    // Cuerpo
+    ctx.fillStyle = colors[0];
+    ctx.beginPath(); ctx.ellipse(25, 30, 20, 18, 0, 0, Math.PI*2); ctx.fill();
+    // Pelaje tierno
+    if(state.breed === 'poodle' || state.breed === 'pomeranian' || state.breed === 'chow') {
+        ctx.beginPath(); ctx.arc(10, 20, 10, 0, Math.PI*2); ctx.arc(40, 20, 10, 0, Math.PI*2); ctx.arc(25, 10, 10, 0, Math.PI*2); ctx.fill();
+    }
 
-  if (state.breed === 'poodle') {
-      ctx.fillStyle = '#fdf4f5';
+    // Patas cortas
+    ctx.fillRect(10, 42, 8, 12); ctx.fillRect(32, 42, 8, 12);
+    
+    // Cabeza Grande y Redonda
+    ctx.save();
+    let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 8 : 0;
+    ctx.translate(5, 5 + headY);
+    ctx.fillStyle = colors[0];
+    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*2); ctx.fill();
+    
+    // Orejas Tiernas
+    ctx.fillRect(-22, -28, 10, 12); ctx.fillRect(2, -28, 10, 12);
+
+    // Trompita Redondeada
+    if (state.breed === 'poodle') ctx.fillStyle = '#fdf4f5';
+    else ctx.fillStyle = colors[1];
+    ctx.beginPath(); ctx.ellipse(-10, 8, 12, 10, 0, 0, Math.PI*2); ctx.fill();
+
+    // OJOS GRANDES Y DISTINTOS
+    if(state.anim === 'sleep' || isTired) {
+        ctx.fillStyle = '#1e2937'; ctx.fillRect(-16, -5, 12, isTired ? 3 : 2);
+    } else {
+        ctx.fillStyle = c[2]; // Color base del ojo
+        const parpadeo = state.frame === 1 ? 2 : 10;
+        // Fondo blanco del ojo para que resalte
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-10, -5, parpadeo/2, 0, Math.PI*2); ctx.fill();
+        // Pupila
+        ctx.fillStyle = c[2] === '#000' ? '#1c1917' : c[2];
+        ctx.beginPath(); ctx.arc(-10, -5, parpadeo/3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    // Cola pequeña
+    ctx.fillStyle = colors[0]; ctx.fillRect(40, 20, 6, 12);
+
+    if (state.anim === 'feed') { ctx.fillStyle = '#451a03'; ctx.fillRect(-40, 40, 30, 12); }
+
   } else {
-      ctx.fillStyle = colors[1];
+    // DISEÑO ADULTO (Grande, definido, detalles)
+    ctx.scale(1.35, 1.35);
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(30, 60, 45, 8, 0, 0, Math.PI*2); ctx.fill();
+
+    // Cuerpo estilizado y pelaje
+    ctx.fillStyle = colors[0];
+    ctx.beginPath(); ctx.ellipse(30, 30, 35, 25, 0, 0, Math.PI*2); ctx.fill();
+    // Pelaje defined
+    if(state.breed === 'husky' || state.breed === 'collie' || state.breed === 'bernard') {
+       ctx.fillRect(0,10,10,10); ctx.fillRect(50,10,10,10); ctx.fillRect(25,5,10,10); 
+    } else if(state.breed === 'poodle') {
+       ctx.fillStyle = '#fae8ff'; ctx.beginPath(); ctx.arc(0, 20, 12, 0, Math.PI*2); ctx.arc(60, 20, 12, 0, Math.PI*2); ctx.fill();
+    }
+    
+    // Cola definida
+    ctx.fillStyle = colors[0]; ctx.fillRect(60, 10, 12, 22);
+
+    // Patas largas
+    ctx.fillRect(10, 55, 14, 18); ctx.fillRect(45, 55, 14, 18);
+
+    // Cabeza
+    ctx.save();
+    let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 12 : 2;
+    ctx.translate(5, 10 + headY);
+    ctx.fillStyle = colors[0];
+    ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.fill();
+    
+    // Orejas definidas
+    ctx.fillRect(-24, -30, 12, 16); ctx.fillRect(2, -30, 12, 16);
+
+    // Trompa definida
+    if (state.breed === 'poodle') ctx.fillStyle = '#fdf4f5';
+    else ctx.fillStyle = colors[1];
+    ctx.beginPath(); ctx.ellipse(-15, 10, 15, 12, 0, 0, Math.PI*2); ctx.fill();
+
+    // OJOS DEFINIDOS
+    if(state.anim === 'sleep' || isTired) {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(-20, -10, 14, isTired ? 4 : 3);
+    } else {
+        // Fondo blanco
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-12, -8, 6, 0, Math.PI*2); ctx.fill();
+        // Pupila y color
+        ctx.fillStyle = c[2] === '#000' ? '#1c1917' : c[2];
+        const blink = state.frame === 1 ? 2 : 5;
+        ctx.beginPath(); ctx.arc(-12, -8, blink, 0, Math.PI*2); ctx.fill();
+        // Brillo
+        ctx.fillStyle = '#fff'; ctx.fillRect(-10, -10, 2, 2);
+    }
+    ctx.restore();
+
+    if (state.anim === 'feed') { ctx.fillStyle = '#451a03'; ctx.fillRect(-50, 50, 40, 15); }
   }
-  ctx.fillRect(-50, -15, 25, 22); 
 
-  ctx.fillStyle = (state.anim === 'sleep' || isTired) ? '#1e293b' : colors[2];
-  let eyeH = (state.anim === 'sleep') ? 2 : (isTired ? 4 : (state.frame === 1 ? 2 : 10));
-  ctx.fillRect(-35, -30, 8, eyeH);
-  ctx.restore();
-
-  if (state.anim === 'feed') { ctx.fillStyle = '#451a03'; ctx.fillRect(-65, 55, 40, 15); }
   ctx.restore();
   ctx.filter = 'none';
 }
@@ -414,10 +484,13 @@ function updateUI() {
     document.getElementById('enBar').style.width = state.energy+'%';
     document.getElementById('huBar').style.width = state.hunger+'%';
     document.getElementById('clBar').style.width = state.clean+'%';
+    document.getElementById('haBar').style.width = state.happy+'%';
+    
     document.getElementById('xpTxt').innerText = state.xp+'%';
     document.getElementById('enTxt').innerText = Math.round(state.energy);
     document.getElementById('huTxt').innerText = Math.round(state.hunger);
     document.getElementById('clTxt').innerText = Math.round(state.clean);
+    
     document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
     document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     document.getElementById('stageLabel').innerText = state.lv >= 10 ? 'ETAPA: ADULTO' : 'ETAPA: CACHORRO';
@@ -437,7 +510,7 @@ function openMenu() {
     document.getElementById('modal').style.display = 'flex'; 
 }
 
-// FUNCIONES DEL NUEVO MENÚ DE FONDOS
+// FUNCIONES DEL MENÚ DE FONDOS
 function openBgMenu() {
     document.getElementById('bgModal').style.display = 'flex';
 }
@@ -449,6 +522,34 @@ function changeBg(newBg) {
     saveGame();
     drawPet();
     closeBgMenu();
+}
+
+// --- LÓGICA DE PERSISTENCIA (GUARDADO) ---
+const SAVE_KEY = 'NEOPIXEL_PET_SAVE_V1';
+
+function saveGame() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    const msg = document.getElementById('saveMsg');
+    msg.style.opacity = 1;
+    setTimeout(() => msg.style.opacity = 0, 2000);
+}
+
+function loadGame() {
+    const savedData = localStorage.getItem(SAVE_KEY);
+    if (savedData) {
+        const parsed = JSON.parse(savedData);
+        Object.assign(state, parsed);
+        state.busy = false; 
+        return true;
+    }
+    return false;
+}
+
+function resetEverything() {
+    if(confirm("¿Seguro que quieres borrar toda tu mascota actual?")) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
 }
 
 window.onload = () => {
