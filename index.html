@@ -54,15 +54,20 @@
 <div id="modal" class="modal-bg">
   <div class="card" style="width: 400px; text-align: center;">
     <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
-    <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-    <select id="pBreed" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-      <option value="husky">Husky Siberiano (Orejas Arriba)</option>
-      <option value="beagle">Beagle Sabueso (Orejas Caídas)</option>
-      <option value="pug">Pug Gracioso (Orejas Caídas)</option>
+    <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+    <select id="pBreed" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+      <option value="husky">Husky Siberiano</option>
+      <option value="beagle">Beagle Sabueso</option>
+      <option value="pug">Pug Gracioso</option>
       <option value="poodle">Poodle Elegante</option>
       <option value="doberman">Doberman Fiel</option>
-      <option value="labrador">Labrador Dorado (Orejas Caídas)</option>
+      <option value="labrador">Labrador Dorado</option>
       <option value="yorkie">Yorkie Terrier</option>
+    </select>
+    <select id="pBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+      <option value="bg_house">🏡 Interior de la Casa</option>
+      <option value="bg_park">🌳 Parque Soleado</option>
+      <option value="bg_dark">🌙 Habitación Oscura</option>
     </select>
     <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">CONFIRMAR</button>
     <button onclick="resetEverything()" style="width:100%; margin-top:10px; background:#ef444422; color:var(--danger); border:1px solid var(--danger); font-size:8px;">BORRAR PARTIDA ACTUAL</button>
@@ -72,17 +77,22 @@
 <div id="optionsModal" class="modal-bg">
   <div class="card" style="width: 400px; text-align: center;">
     <h2 style="font-family:'Press Start 2P'; font-size:12px; color:white; margin-bottom:10px;">⚙️ OPCIONES</h2>
-    <p style="font-size:10px; color:#9ca3af; margin-bottom:20px;">Cambia tu mascota sin perder nivel ni monedas.</p>
+    <p style="font-size:10px; color:#9ca3af; margin-bottom:20px;">Cambia tu mascota o escenario.</p>
     
-    <input id="optName" type="text" placeholder="Nuevo Nombre" maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-    <select id="optBreed" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-      <option value="husky">Husky Siberiano (Orejas Arriba)</option>
-      <option value="beagle">Beagle Sabueso (Orejas Caídas)</option>
-      <option value="pug">Pug Gracioso (Orejas Caídas)</option>
+    <input id="optName" type="text" placeholder="Nuevo Nombre" maxlength="12" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+    <select id="optBreed" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+      <option value="husky">Husky Siberiano</option>
+      <option value="beagle">Beagle Sabueso</option>
+      <option value="pug">Pug Gracioso</option>
       <option value="poodle">Poodle Elegante</option>
       <option value="doberman">Doberman Fiel</option>
-      <option value="labrador">Labrador Dorado (Orejas Caídas)</option>
+      <option value="labrador">Labrador Dorado</option>
       <option value="yorkie">Yorkie Terrier</option>
+    </select>
+    <select id="optBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+      <option value="bg_house">🏡 Interior de la Casa</option>
+      <option value="bg_park">🌳 Parque Soleado</option>
+      <option value="bg_dark">🌙 Habitación Oscura</option>
     </select>
     
     <button onclick="saveOptions()" class="btn-accent" style="width:100%; margin-top:20px;">GUARDAR CAMBIOS</button>
@@ -143,7 +153,7 @@
       <button onclick="openShop()" style="background:var(--coins); color:black;">🛒 TIENDA</button>
       <button id="healBtn" onclick="performAction('heal')" style="background:#374151; color:#9ca3af; cursor:not-allowed;">💊 CURAR (10🪙)</button>
       
-      <button onclick="openOptions()" style="background:#374151; color:#d1d5db; grid-column: span 2;">⚙️ CAMBIAR RAZA / NOMBRE</button>
+      <button onclick="openOptions()" style="background:#374151; color:#d1d5db; grid-column: span 2;">⚙️ OPCIONES (RAZA Y ESCENARIO)</button>
     </div>
   </div>
 
@@ -180,7 +190,7 @@
 const SAVE_KEY = 'NEOPIXEL_PET_V3'; 
 
 const defaultState = {
-  name: 'Doggo', breed: 'husky', bg: 'bg_dark',
+  name: 'Doggo', breed: 'husky', bg: 'bg_house',
   hunger: 100, energy: 100, clean: 100, xp: 0, lv: 1, coins: 0,
   sick: false, healthTimer: 100,
   inventory: [], equipment: { head: null, neck: null },
@@ -219,9 +229,22 @@ function resetEverything() {
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
+  // Escenarios dinámicos
   const PERSPECTIVE_FLOOR_Y = 200;
-  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200);
-  ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
+  if(state.bg === 'bg_house') {
+      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200); // Pared
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(20, 40, 60, 60); // Ventana cuadrada
+      ctx.fillStyle = '#6b7280'; ctx.fillRect(20, 70, 60, 4); // Reja ventana
+      ctx.fillStyle = '#6b7280'; ctx.fillRect(48, 40, 4, 60); 
+      ctx.fillStyle = '#78350f'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Suelo madera
+  } else if(state.bg === 'bg_park') {
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200); // Cielo
+      ctx.fillStyle = '#fef08a'; ctx.fillRect(180, 20, 40, 40); // Sol cuadrado
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Pasto
+  } else {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200); // Noche
+      ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Suelo oscuro
+  }
 
   let stage = 0; 
   if (state.lv >= 5 && state.lv < 10) stage = 1;
@@ -441,12 +464,14 @@ function openShop() {
 function openOptions() {
     document.getElementById('optName').value = state.name;
     document.getElementById('optBreed').value = state.breed;
+    document.getElementById('optBg').value = state.bg || 'bg_house'; // Cargar fondo actual
     document.getElementById('optionsModal').style.display = 'flex';
 }
 
 function saveOptions() {
     state.name = document.getElementById('optName').value || 'Doggo';
     state.breed = document.getElementById('optBreed').value;
+    state.bg = document.getElementById('optBg').value; // Guardar nuevo fondo
     closeModals();
     saveGame();
     drawPet();
@@ -512,6 +537,7 @@ function updateUI() {
 function startGame() {
     state.name = document.getElementById('pName').value || 'Doggo';
     state.breed = document.getElementById('pBreed').value;
+    state.bg = document.getElementById('pBg').value;
     closeModals(); saveGame();
     if(!window.isRun) { loop(); window.isRun = true; }
 }
