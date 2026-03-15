@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Evolution Fix Edition</title>
+<title>NeoPixel Pet: Final Fix</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -58,7 +58,7 @@
       <option value="bulldog">Bulldog Fuerte</option>
       <option value="labrador">Labrador Dorado</option>
     </select>
-    <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">COMENZAR JUEGO</button>
+    <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">ADOPTAR</button>
   </div>
 </div>
 
@@ -113,7 +113,9 @@
     </div>
 
     <div id="gameZone">
-        </div>
+        <p style="color:#4b5563; font-weight:bold;">Toca el botón de abajo para jugar</p>
+    </div>
+    <button onclick="loadGameMenu()" class="btn-accent" style="width:100%; margin-top:15px; font-size:14px; letter-spacing:1px;">🎮 ABRIR MINIJUEGOS</button>
   </div>
 </div>
 
@@ -132,15 +134,14 @@ const gamesConfig = {
     labrador: [ {n: "🌊 Buceo", t: "catch", i: "🎾"}, {n: "🦆 Pato", t: "timing"}, {n: "🐕‍🦺 Guía", t: "click", i: "⚡"} ]
 };
 
-let currentIntervals = []; // Para limpiar juegos
+let gameIntervals = [];
 
 const canvas = document.getElementById('petCanvas');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
 
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
-  ctx.fillStyle = '#111827'; ctx.fillRect(0, 200, 250, 50); // Suelo
+  ctx.fillStyle = '#111827'; ctx.fillRect(0, 200, 250, 50);
 
   const isAdult = state.lv >= 10;
   const scale = isAdult ? 1.35 : 1.0;
@@ -153,7 +154,6 @@ function drawPet() {
   ctx.translate(110, 140 + bounce);
   ctx.scale(scale, scale);
 
-  // Filtro de suciedad
   if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)';
 
   const colors = {
@@ -164,40 +164,25 @@ function drawPet() {
     labrador: ['#fbbf24', '#fef08a', '#000']
   }[state.breed];
 
-  // Cuerpo (Derecha) y Cola
   ctx.fillStyle = colors[0];
   ctx.fillRect(0, 15, 65, 45); 
   ctx.fillRect(60, 10, 10, 20); // Cola
+  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18); // Patas
 
-  // Patas
-  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18);
-
-  // Cabeza (Izquierda)
   ctx.save();
   let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 10 : 0;
   ctx.translate(5, 20 + headY);
   ctx.fillStyle = colors[0];
-  ctx.fillRect(-45, -45, 50, 50); // Cráneo
+  ctx.fillRect(-45, -45, 50, 50); 
   ctx.fillStyle = colors[1];
-  ctx.fillRect(-50, -15, 25, 22); // Hocico
+  ctx.fillRect(-50, -15, 25, 22); 
 
-  // Ojos (Cansancio / Parpadeo)
   ctx.fillStyle = (state.anim === 'sleep' || isTired) ? '#1e293b' : colors[2];
   let eyeH = (state.anim === 'sleep') ? 2 : (isTired ? 4 : (state.frame === 1 ? 2 : 10));
   ctx.fillRect(-35, -30, 8, eyeH);
   ctx.restore();
 
-  // Cuenco
-  if (state.anim === 'feed') {
-      ctx.fillStyle = '#451a03'; ctx.fillRect(-65, 55, 40, 15);
-  }
-
-  // Moscas de suciedad
-  if (state.clean < 30) {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(Math.sin(state.tick*0.2)*20, -30, 3, 3);
-      ctx.fillRect(Math.cos(state.tick*0.2)*30, 20, 2, 2);
-  }
+  if (state.anim === 'feed') { ctx.fillStyle = '#451a03'; ctx.fillRect(-65, 55, 40, 15); }
 
   ctx.restore();
   ctx.filter = 'none';
@@ -206,34 +191,34 @@ function drawPet() {
 function performAction(type) {
     if(state.busy) return;
     state.busy = true;
-
     if(type === 'feed') {
-        state.anim = 'feed'; state.hunger = Math.min(100, state.hunger + 30);
-        state.clean -= 10;
+        state.anim = 'feed'; state.hunger = Math.min(100, state.hunger + 30); state.clean -= 10;
         setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(10); }, 2000);
     } else if(type === 'play') {
-        if(state.energy < 20) { state.busy = false; return alert("Cansado..."); }
+        if(state.energy < 20) { state.busy = false; return; }
         state.anim = 'play'; state.energy -= 15;
         setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(20); }, 2000);
     } else if(type === 'sleep') {
-        state.anim = 'sleep';
-        document.getElementById('sleepOverlay').style.display = 'flex';
-        let s = 10;
-        const si = setInterval(() => {
+        state.anim = 'sleep'; document.getElementById('sleepOverlay').style.display = 'flex';
+        let s = 10; const si = setInterval(() => {
             s--; document.getElementById('timer').innerText = s+'s';
             if(s<=0) { clearInterval(si); state.busy = false; state.anim = 'idle'; state.energy = 100; document.getElementById('sleepOverlay').style.display = 'none'; }
         }, 1000);
     } else if(type === 'clean') {
-        state.clean = 100;
-        setTimeout(() => { state.busy = false; addXP(5); }, 1000);
+        state.clean = 100; setTimeout(() => { state.busy = false; addXP(5); }, 1000);
     }
 }
 
-// LÓGICA DE MINIJUEGOS ARREGLADA
+// LÓGICA DE MINIJUEGOS CON BOTÓN DEDICADO
 function loadGameMenu() {
-    state.busy = false;
+    // Reset total antes de abrir
+    gameIntervals.forEach(clearInterval);
+    gameIntervals = [];
+    state.busy = false; 
+
     const zone = document.getElementById('gameZone');
-    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px; font-weight:bold;">MINIJUEGOS DE ${state.breed.toUpperCase()}</p><div id="mBtns" style="display:grid; gap:10px; width:80%;"></div>`;
+    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px; font-weight:bold;">ELIGE UN JUEGO</p><div id="mBtns" style="display:grid; gap:10px; width:85%;"></div>`;
+    
     gamesConfig[state.breed].forEach((g, i) => {
         const b = document.createElement('button');
         b.innerText = g.n;
@@ -243,7 +228,7 @@ function loadGameMenu() {
 }
 
 function startMinigame(idx) {
-    if(state.energy < 15) return alert("Poca energía");
+    if(state.energy < 15) return alert("Muy cansado para jugar");
     state.busy = true; state.energy -= 15;
     const game = gamesConfig[state.breed][idx];
     const zone = document.getElementById('gameZone');
@@ -263,37 +248,30 @@ function startMinigame(idx) {
                 top += 5; o.style.top = top + 'px';
                 if(top > 300) { clearInterval(fall); o.remove(); }
             }, 30);
-            currentIntervals.push(fall);
+            gameIntervals.push(fall);
         }, 700);
-        currentIntervals.push(intv);
-        setTimeout(() => endMinigame(score * 10), 8000);
+        gameIntervals.push(intv);
+        setTimeout(() => finishMinigame(score * 10), 8000);
     } else if(game.t === "click") {
-        zone.innerHTML = `<h2 id="sc" style="font-size:30px">0</h2><button id="hit" style="font-size:50px; width:120px; height:120px; border-radius:50%">${game.i}</button>`;
+        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; border:4px solid var(--accent); color:white;">${game.i}</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
-        setTimeout(() => endMinigame(score * 5), 5000);
-    } else { // Timing
-        zone.innerHTML = `<p>¡PULSA EN VERDE!</p><div style="width:200px; height:20px; background:#1f2937; position:relative; border-radius:10px;"><div id="ptr" style="width:6px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:green; margin:0 auto;"></div></div><button id="go" style="margin-top:20px">YA!</button>`;
-        let p = 0, d = 2;
-        const m = setInterval(() => { p += d; if(p >= 194 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
-        currentIntervals.push(m);
-        document.getElementById('go').onclick = () => { clearInterval(m); const win = p > 80 && p < 120; endMinigame(win ? 50 : 5); };
+        setTimeout(() => finishMinigame(score * 5), 5000);
+    } else {
+        zone.innerHTML = `<p style="font-size:10px">¡CLICK EN EL CENTRO!</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px; border:2px solid #374151;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0; box-shadow:0 0 10px white;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.6;"></div></div><button id="go" style="margin-top:25px; background:var(--success)">¡AHORA!</button>`;
+        let p = 0, d = 3;
+        const m = setInterval(() => { p += d; if(p >= 190 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
+        gameIntervals.push(m);
+        document.getElementById('go').onclick = () => { clearInterval(m); const win = p > 80 && p < 120; finishMinigame(win ? 60 : 10); };
     }
 }
 
-function endMinigame(xp) {
-    // Limpiar todos los intervalos activos
-    currentIntervals.forEach(clearInterval);
-    currentIntervals = [];
-    
+function finishMinigame(xp) {
+    gameIntervals.forEach(clearInterval);
+    gameIntervals = [];
     const zone = document.getElementById('gameZone');
-    zone.innerHTML = `
-        <div style="text-align:center">
-            <h2 style="margin:0">¡FIN!</h2>
-            <p style="color:var(--accent); font-size:20px; font-weight:900;">+${xp} XP</p>
-            <button onclick="loadGameMenu()" class="btn-accent" style="margin-top:10px">VOLVER AL MENÚ</button>
-        </div>
-    `;
+    zone.innerHTML = `<div style="text-align:center"><h2 style="margin:0">¡RESULTADO!</h2><p style="color:var(--accent); font-size:24px; font-weight:900;">+${xp} XP</p><p style="font-size:10px; color:#6b7280;">Usa el botón azul para jugar de nuevo</p></div>`;
     addXP(xp);
+    state.busy = false;
 }
 
 function addXP(v) {
@@ -308,12 +286,10 @@ function updateUI() {
     document.getElementById('huBar').style.width = state.hunger+'%';
     document.getElementById('clBar').style.width = state.clean+'%';
     document.getElementById('haBar').style.width = state.happy+'%';
-    
     document.getElementById('xpTxt').innerText = state.xp+'%';
     document.getElementById('enTxt').innerText = Math.round(state.energy);
     document.getElementById('huTxt').innerText = Math.round(state.hunger);
     document.getElementById('clTxt').innerText = Math.round(state.clean);
-    
     document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
     document.getElementById('stageLabel').innerText = state.lv >= 10 ? 'ETAPA: ADULTO' : 'ETAPA: CACHORRO';
 }
@@ -323,7 +299,6 @@ function startGame() {
     state.breed = document.getElementById('pBreed').value;
     document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     document.getElementById('modal').style.display = 'none';
-    loadGameMenu();
     if(!window.isRun) { loop(); window.isRun = true; }
 }
 
@@ -334,10 +309,9 @@ function loop() {
         state.tick++;
         if(state.tick % 25 === 0) state.frame = (state.frame + 1) % 2;
         if(!state.busy) {
-            state.hunger = Math.max(0, state.hunger - 0.05);
-            state.energy = Math.max(0, state.energy - 0.03);
+            state.hunger = Math.max(0, state.hunger - 0.04);
+            state.energy = Math.max(0, state.energy - 0.02);
             state.clean = Math.max(0, state.clean - 0.02);
-            state.happy = Math.max(0, state.happy - 0.02);
         }
         drawPet(); updateUI();
     }, 40);
