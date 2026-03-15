@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Saga Evolution (Cachorros y Adultos)</title>
+<title>NeoPixel Pet: Cachorros y Adultos</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -166,7 +166,7 @@
 
 <script>
 // --- LÓGICA DE PERSISTENCIA (GUARDADO) ---
-const SAVE_KEY = 'NEOPIXEL_PET_SAVE_V1';
+const SAVE_KEY = 'NEOPIXEL_PET_SAVE_V2'; // Cambiado a V2 para asegurar una partida nueva y sin errores.
 
 function saveGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
@@ -193,7 +193,7 @@ function resetEverything() {
     }
 }
 
-// --- ESTADO INICIAL ---
+// --- ESTADO INICIAL Y CONFIGURACIONES ---
 const state = {
   name: 'Doggo', breed: 'husky', bg: 'bg_dark',
   hunger: 100, energy: 100, clean: 100, happy: 100, xp: 0, lv: 1,
@@ -318,7 +318,7 @@ function drawPet() {
     else ctx.fillStyle = colors[1];
     ctx.beginPath(); ctx.ellipse(-10, 8, 12, 10, 0, 0, Math.PI*2); ctx.fill();
 
-    // OJOS GRANDES Y DISTINTOS (CORREGIDO c[2] a colors[2])
+    // OJOS GRANDES Y DISTINTOS
     if(state.anim === 'sleep' || isTired) {
         ctx.fillStyle = '#1e2937'; ctx.fillRect(-16, -5, 12, isTired ? 3 : 2);
     } else {
@@ -375,7 +375,7 @@ function drawPet() {
     else ctx.fillStyle = colors[1];
     ctx.beginPath(); ctx.ellipse(-15, 10, 15, 12, 0, 0, Math.PI*2); ctx.fill();
 
-    // OJOS DEFINIDOS (CORREGIDO c[2] a colors[2])
+    // OJOS DEFINIDOS
     if(state.anim === 'sleep' || isTired) {
         ctx.fillStyle = '#1e293b'; ctx.fillRect(-20, -10, 14, isTired ? 4 : 3);
     } else {
@@ -512,17 +512,11 @@ function openMenu() {
     document.getElementById('modal').style.display = 'flex'; 
 }
 
-function openBgMenu() {
-    document.getElementById('bgModal').style.display = 'flex';
-}
-function closeBgMenu() {
-    document.getElementById('bgModal').style.display = 'none';
-}
+function openBgMenu() { document.getElementById('bgModal').style.display = 'flex'; }
+function closeBgMenu() { document.getElementById('bgModal').style.display = 'none'; }
 function changeBg(newBg) {
     state.bg = newBg;
-    saveGame();
-    drawPet();
-    closeBgMenu();
+    saveGame(); drawPet(); closeBgMenu();
 }
 
 window.onload = () => {
