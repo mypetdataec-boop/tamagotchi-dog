@@ -53,7 +53,7 @@
 
 <div id="modal" class="modal-bg">
   <div class="card" style="width: 400px; text-align: center;">
-    <h2 id="modalTitle" style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
+    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
     <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
     <select id="pBreed" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
       <option value="husky">Husky Siberiano (Orejas Arriba)</option>
@@ -66,6 +66,27 @@
     </select>
     <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">CONFIRMAR</button>
     <button onclick="resetEverything()" style="width:100%; margin-top:10px; background:#ef444422; color:var(--danger); border:1px solid var(--danger); font-size:8px;">BORRAR PARTIDA ACTUAL</button>
+  </div>
+</div>
+
+<div id="optionsModal" class="modal-bg">
+  <div class="card" style="width: 400px; text-align: center;">
+    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:white; margin-bottom:10px;">⚙️ OPCIONES</h2>
+    <p style="font-size:10px; color:#9ca3af; margin-bottom:20px;">Cambia tu mascota sin perder nivel ni monedas.</p>
+    
+    <input id="optName" type="text" placeholder="Nuevo Nombre" maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+    <select id="optBreed" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
+      <option value="husky">Husky Siberiano (Orejas Arriba)</option>
+      <option value="beagle">Beagle Sabueso (Orejas Caídas)</option>
+      <option value="pug">Pug Gracioso (Orejas Caídas)</option>
+      <option value="poodle">Poodle Elegante</option>
+      <option value="doberman">Doberman Fiel</option>
+      <option value="labrador">Labrador Dorado (Orejas Caídas)</option>
+      <option value="yorkie">Yorkie Terrier</option>
+    </select>
+    
+    <button onclick="saveOptions()" class="btn-accent" style="width:100%; margin-top:20px;">GUARDAR CAMBIOS</button>
+    <button onclick="closeModals()" style="width:100%; margin-top:10px; background:transparent; border:1px solid #374151;">CANCELAR</button>
   </div>
 </div>
 
@@ -121,6 +142,8 @@
       <button onclick="performAction('clean')" style="background:var(--success)">🧼 LIMPIAR</button>
       <button onclick="openShop()" style="background:var(--coins); color:black;">🛒 TIENDA</button>
       <button id="healBtn" onclick="performAction('heal')" style="background:#374151; color:#9ca3af; cursor:not-allowed;">💊 CURAR (10🪙)</button>
+      
+      <button onclick="openOptions()" style="background:#374151; color:#d1d5db; grid-column: span 2;">⚙️ CAMBIAR RAZA / NOMBRE</button>
     </div>
   </div>
 
@@ -154,7 +177,7 @@
 
 <script>
 // --- LÓGICA DE PERSISTENCIA ---
-const SAVE_KEY = 'NEOPIXEL_PET_V3'; // V3 para resetear y aplicar todo lo nuevo
+const SAVE_KEY = 'NEOPIXEL_PET_V3'; 
 
 const defaultState = {
   name: 'Doggo', breed: 'husky', bg: 'bg_dark',
@@ -187,7 +210,7 @@ function loadGame() {
 }
 
 function resetEverything() {
-    if(confirm("¿Seguro que quieres borrar toda tu mascota actual?")) {
+    if(confirm("¿Seguro que quieres borrar toda tu mascota actual? Perderás tus niveles y monedas.")) {
         localStorage.removeItem(SAVE_KEY); location.reload();
     }
 }
@@ -196,13 +219,11 @@ function resetEverything() {
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
-  // Fondo clásico
   const PERSPECTIVE_FLOOR_Y = 200;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200);
   ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
 
-  // EVOLUCIONES (3 Etapas)
-  let stage = 0; // 0: Cachorro, 1: Joven, 2: Adulto
+  let stage = 0; 
   if (state.lv >= 5 && state.lv < 10) stage = 1;
   if (state.lv >= 10) stage = 2;
   
@@ -226,45 +247,34 @@ function drawPet() {
   ctx.save();
   ctx.translate(bx, by + bounce);
   
-  // Si está sucio o enfermo
-  if (state.sick) ctx.filter = 'sepia(0.8) hue-rotate(90deg) brightness(0.7)'; // Verde enfermo
-  else if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)'; // Sucio
+  if (state.sick) ctx.filter = 'sepia(0.8) hue-rotate(90deg) brightness(0.7)'; 
+  else if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)'; 
 
-  // Sombra
   ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-10 * scale, 12 * scale, 25 * scale, 4 * scale);
 
-  // Patas
   ctx.fillStyle = colors[0];
   ctx.fillRect(-4 * scale, 10 * scale, 4 * scale, 6 * scale); 
   ctx.fillRect(8 * scale, 10 * scale, 4 * scale, 6 * scale); 
 
-  // Cola
   let tailWag = Math.floor(Math.sin(state.tick * 0.5) * 2);
   ctx.fillRect(-12 * scale, 2 * scale + tailWag, 6 * scale, 4 * scale);
 
-  // Cuerpo
   ctx.fillRect(-8 * scale, 0, 20 * scale, 12 * scale);
-  ctx.fillStyle = colors[1]; // Barriga
+  ctx.fillStyle = colors[1]; 
   ctx.fillRect(-2 * scale, 8 * scale, 12 * scale, 4 * scale);
 
-  // Cabeza (Animada)
   ctx.save();
   let headY = (state.anim === 'feed' && state.tick % 10 < 5) ? 3 * scale : 0;
   ctx.translate(6 * scale, -10 * scale + headY);
   
-  // Base cabeza
   ctx.fillStyle = colors[0]; ctx.fillRect(0, 0, 14 * scale, 12 * scale);
-
-  // Hocico alargado y nariz
   ctx.fillStyle = colors[1]; ctx.fillRect(10 * scale, 6 * scale, 8 * scale, 5 * scale);
   ctx.fillStyle = '#000'; ctx.fillRect(16 * scale, 6 * scale, 2 * scale, 2 * scale);
 
-  // Orejas
   ctx.fillStyle = colors[0];
   if (hasFloppyEars) ctx.fillRect(2 * scale, 4 * scale, 4 * scale, 8 * scale);
   else ctx.fillRect(2 * scale, -4 * scale, 4 * scale, 6 * scale);
 
-  // Ojos Expresivos
   if (state.anim === 'sleep' || isTired || state.sick) {
       ctx.fillStyle = '#000'; ctx.fillRect(8 * scale, 4 * scale, 4 * scale, 1 * scale);
   } else {
@@ -277,7 +287,6 @@ function drawPet() {
       }
   }
 
-  // ACCESORIOS (Cabeza)
   if(state.equipment.head === 'tophat') {
       ctx.fillStyle = '#111827'; ctx.fillRect(2 * scale, -8 * scale, 10 * scale, 8 * scale);
       ctx.fillRect(-1 * scale, -2 * scale, 16 * scale, 2 * scale);
@@ -287,21 +296,18 @@ function drawPet() {
       ctx.fillRect(1 * scale, -4 * scale, 4 * scale, 6 * scale); ctx.fillRect(9 * scale, -4 * scale, 4 * scale, 6 * scale);
   }
 
-  ctx.restore(); // Fin cabeza
+  ctx.restore(); 
 
-  // ACCESORIOS (Cuello)
   if(state.equipment.neck === 'redcollar') {
       ctx.fillStyle = '#ef4444'; ctx.fillRect(4 * scale, -2 * scale, 6 * scale, 3 * scale);
-      ctx.fillStyle = '#fbbf24'; ctx.fillRect(6 * scale, -1 * scale, 2 * scale, 2 * scale); // Medalla
+      ctx.fillStyle = '#fbbf24'; ctx.fillRect(6 * scale, -1 * scale, 2 * scale, 2 * scale); 
   }
 
-  // Comida
   if (state.anim === 'feed') { 
       ctx.fillStyle = '#451a03'; ctx.fillRect(20 * scale, 10 * scale, 12 * scale, 4 * scale); 
       ctx.fillStyle = '#fbbf24'; ctx.fillRect(21 * scale, 8 * scale, 10 * scale, 2 * scale); 
   }
 
-  // Termómetro si está enfermo
   if(state.sick) {
       ctx.fillStyle = '#fff'; ctx.fillRect(25 * scale, -15 * scale, 3 * scale, 15 * scale);
       ctx.fillStyle = '#ef4444'; ctx.fillRect(25 * scale, -5 * scale, 3 * scale, 5 * scale);
@@ -341,7 +347,6 @@ function performAction(type) {
     }
 }
 
-// --- ANIMACIÓN DE EXPERIENCIA ---
 let isAnimatingXP = false;
 function addXP(v) {
     if (isAnimatingXP) return;
@@ -363,7 +368,7 @@ function addXP(v) {
     }, 25);
 }
 
-// --- MINIJUEGOS Y MONEDAS ---
+// --- MINIJUEGOS ---
 function loadGameMenu() {
     if (state.sick) return alert("¡Tu mascota está enferma!");
     gameIntervals.forEach(clearInterval); gameIntervals = []; state.busy = false; 
@@ -394,11 +399,11 @@ function startMinigame(type) {
             gameIntervals.push(fall);
         }, 800);
         gameIntervals.push(intv);
-        setTimeout(() => finishMinigame(score * 10, score * 2), 8000); // Da monedas según el score
+        setTimeout(() => finishMinigame(score * 10, score * 2), 8000); 
     } else if(type === "click") {
         zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">🐾</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
-        setTimeout(() => finishMinigame(score * 5, Math.floor(score/3)), 5000); // 1 moneda por cada 3 clics
+        setTimeout(() => finishMinigame(score * 5, Math.floor(score/3)), 5000); 
     } else if (type === "timing") {
         zone.innerHTML = `<div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
         let p = 0, d = 4;
@@ -416,15 +421,13 @@ function finishMinigame(xp, extraCoins) {
     addXP(xp); state.busy = false; saveGame();
 }
 
-// --- TIENDA ---
+// --- MENÚ OPCIONES / TIENDA ---
 function openShop() {
     document.getElementById('shopCoins').innerText = state.coins;
-    
     const items = ['tophat', 'redcollar', 'pinkbow'];
     items.forEach(item => {
         const btn = document.getElementById('btn_' + item);
         if (state.inventory.includes(item)) {
-            // Ya lo compró, dar opción a equipar/desequipar
             const isEquipped = state.equipment.head === item || state.equipment.neck === item;
             btn.innerText = isEquipped ? "QUITAR" : "PONER";
             btn.style.background = isEquipped ? "#374151" : "var(--success)";
@@ -432,38 +435,47 @@ function openShop() {
             btn.onclick = () => toggleEquip(item);
         }
     });
-    
     document.getElementById('shopModal').style.display = 'flex';
+}
+
+function openOptions() {
+    document.getElementById('optName').value = state.name;
+    document.getElementById('optBreed').value = state.breed;
+    document.getElementById('optionsModal').style.display = 'flex';
+}
+
+function saveOptions() {
+    state.name = document.getElementById('optName').value || 'Doggo';
+    state.breed = document.getElementById('optBreed').value;
+    closeModals();
+    saveGame();
+    drawPet();
+    updateUI();
 }
 
 function closeModals() {
     document.getElementById('shopModal').style.display = 'none';
     document.getElementById('modal').style.display = 'none';
+    document.getElementById('optionsModal').style.display = 'none';
     updateUI();
 }
 
 function buyItem(id, price) {
     if (state.coins >= price) {
-        state.coins -= price;
-        state.inventory.push(id);
-        saveGame(); openShop(); // Recargar UI
-    } else {
-        alert("¡No tienes suficientes monedas!");
-    }
+        state.coins -= price; state.inventory.push(id);
+        saveGame(); openShop(); 
+    } else alert("¡No tienes suficientes monedas!");
 }
 
 function toggleEquip(id) {
-    // Determinar tipo de item
     const isHead = id === 'tophat' || id === 'pinkbow';
     const slot = isHead ? 'head' : 'neck';
-    
-    if (state.equipment[slot] === id) state.equipment[slot] = null; // Quitar
-    else state.equipment[slot] = id; // Poner
-    
+    if (state.equipment[slot] === id) state.equipment[slot] = null; 
+    else state.equipment[slot] = id; 
     saveGame(); drawPet(); openShop();
 }
 
-// --- ACTUALIZACIÓN DE INTERFAZ ---
+// --- INICIALIZACIÓN Y BUCLE ---
 function updateUI() {
     document.getElementById('xpBar').style.width = state.xp+'%';
     document.getElementById('enBar').style.width = state.energy+'%';
@@ -484,18 +496,15 @@ function updateUI() {
     if (state.lv >= 10) stageStr = 'ADULTO';
     document.getElementById('stageLabel').innerText = 'ETAPA: ' + stageStr;
 
-    // Actualizar UI de Salud
     const healBtn = document.getElementById('healBtn');
     const saBar = document.getElementById('saBar');
     const saTxt = document.getElementById('saTxt');
     
     if (state.sick) {
-        healBtn.className = "btn-sick"; healBtn.style.cursor = "pointer";
-        healBtn.disabled = false;
+        healBtn.className = "btn-sick"; healBtn.style.cursor = "pointer"; healBtn.disabled = false;
         saBar.style.width = "10%"; saBar.style.background = "var(--danger)"; saTxt.innerText = "ENFERMO";
     } else {
-        healBtn.className = ""; healBtn.style.background = "#374151"; healBtn.style.cursor = "not-allowed";
-        healBtn.disabled = true;
+        healBtn.className = ""; healBtn.style.background = "#374151"; healBtn.style.cursor = "not-allowed"; healBtn.disabled = true;
         saBar.style.width = "100%"; saBar.style.background = "var(--success)"; saTxt.innerText = "SANO";
     }
 }
@@ -522,17 +531,14 @@ function loop() {
             state.energy = Math.max(0, state.energy - 0.005);
             state.clean = Math.max(0, state.clean - 0.008);
             
-            // Lógica de enfermedad: si está muy sucio o con mucha hambre por mucho tiempo
             if (state.clean < 10 || state.hunger < 10) {
                 state.healthTimer -= 0.1;
                 if(state.healthTimer <= 0) { state.sick = true; updateUI(); }
-            } else {
-                state.healthTimer = Math.min(100, state.healthTimer + 0.1);
-            }
+            } else state.healthTimer = Math.min(100, state.healthTimer + 0.1);
         }
         
         drawPet(); 
-        if(state.tick % 50 === 0) updateUI(); // No actualizar UI tan rápido para no gastar recursos
+        if(state.tick % 50 === 0) updateUI(); 
     }, 40);
     setInterval(saveGame, 30000);
 }
