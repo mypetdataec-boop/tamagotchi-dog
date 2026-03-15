@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Saga Evolution (25 Razas)</title>
+<title>NeoPixel Pet: Saga Evolution (25 Razas & Fondos)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -36,7 +36,8 @@
   }
   .mg-obj { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; }
   .overlay { position: absolute; inset: 0; background: rgba(0,0,40,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; border-radius: 24px; }
-  #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+  #modal, #bgModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+  #bgModal { display: none; }
   
   .save-notify { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; padding: 10px 20px; border-radius: 10px; font-size: 10px; font-weight: bold; opacity: 0; transition: 0.5s; }
 </style>
@@ -44,6 +45,27 @@
 <body>
 
 <div id="saveMsg" class="save-notify">💾 PROGRESO GUARDADO</div>
+
+<div id="bgModal">
+  <div class="card" style="width: 400px; text-align: center;">
+    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">ESCOGER FONDO</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+      <div onclick="changeBg('bg_dark')" style="cursor:pointer; background:#020617; border:1px solid #374151; padding:10px; border-radius:12px; transition:0.2s;" onmouseover="this.style.background='#1f2937'" onmouseout="this.style.background='#020617'">
+        <div style="height:50px; background: linear-gradient(to bottom, #000 70%, #111827 30%); border-radius:6px; border:1px solid #374151;"></div>
+        <p style="font-size:9px; margin:8px 0 0 0; color:white; font-weight:bold;">CLÁSICO</p>
+      </div>
+      <div onclick="changeBg('bg_house')" style="cursor:pointer; background:#020617; border:1px solid #374151; padding:10px; border-radius:12px; transition:0.2s;" onmouseover="this.style.background='#1f2937'" onmouseout="this.style.background='#020617'">
+        <div style="height:50px; background: linear-gradient(to bottom, #fef3c7 70%, #78350f 30%); border-radius:6px; border:1px solid #374151;"></div>
+        <p style="font-size:9px; margin:8px 0 0 0; color:white; font-weight:bold;">CASA</p>
+      </div>
+      <div onclick="changeBg('bg_park')" style="cursor:pointer; background:#020617; border:1px solid #374151; padding:10px; border-radius:12px; transition:0.2s;" onmouseover="this.style.background='#1f2937'" onmouseout="this.style.background='#020617'">
+        <div style="height:50px; background: linear-gradient(to bottom, #38bdf8 70%, #4ade80 30%); border-radius:6px; border:1px solid #374151;"></div>
+        <p style="font-size:9px; margin:8px 0 0 0; color:white; font-weight:bold;">PARQUE</p>
+      </div>
+    </div>
+    <button onclick="closeBgMenu()" class="btn-accent" style="width:100%;">CERRAR</button>
+  </div>
+</div>
 
 <div id="modal">
   <div class="card" style="width: 400px; text-align: center;">
@@ -107,7 +129,11 @@
       <button onclick="performAction('sleep')" style="background:var(--warning)">😴 DORMIR</button>
       <button onclick="performAction('clean')" style="background:var(--success)">🧼 LIMPIAR</button>
     </div>
-    <button onclick="openMenu()" style="width:100%; margin-top:12px; background:none; border:1px solid #374151; color:#6b7280; font-size:10px;">🔁 AJUSTES DE MASCOTA</button>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;">
+      <button onclick="openMenu()" style="background:none; border:1px solid #374151; color:#6b7280; font-size:10px;">🔁 MASCOTA</button>
+      <button onclick="openBgMenu()" style="background:none; border:1px solid #374151; color:#6b7280; font-size:10px;">🖼️ FONDOS</button>
+    </div>
   </div>
 
   <div class="card">
@@ -169,7 +195,7 @@ function resetEverything() {
 
 // --- ESTADO INICIAL ---
 const state = {
-  name: 'Doggo', breed: 'husky',
+  name: 'Doggo', breed: 'husky', bg: 'bg_dark', // <-- Se añade guardado de fondo aquí
   hunger: 100, energy: 100, clean: 100, happy: 100, xp: 0, lv: 1,
   anim: 'idle', tick: 0, frame: 0, busy: false
 };
@@ -180,7 +206,6 @@ const gamesConfig = {
     poodle: [ {n: "🫧 Burbujas", t: "catch", i: "🫧"}, {n: "🐩 Desfile", t: "timing"}, {n: "✨ Peluquería", t: "click", i: "✨"} ],
     bulldog: [ {n: "🧶 Cuerda", t: "click", i: "🧶"}, {n: "🥩 Mordida", t: "timing"}, {n: "💰 Ladrón", t: "catch", i: "💰"} ],
     labrador: [ {n: "🌊 Buceo", t: "catch", i: "🎾"}, {n: "🦆 Pato", t: "timing"}, {n: "🐕‍🦺 Guía", t: "click", i: "⚡"} ],
-    // LAS 20 NUEVAS RAZAS
     pug: [ {n: "🍕 Pizza", t: "catch", i: "🍕"}, {n: "💤 Ronquido", t: "timing"}, {n: "📸 Selfie", t: "click", i: "📸"} ],
     chihuahua: [ {n: "🌶️ Chile", t: "catch", i: "🌶️"}, {n: "👜 Bolso", t: "timing"}, {n: "🗣️ Ladrido", t: "click", i: "🗣️"} ],
     doberman: [ {n: "🛡️ Guardia", t: "timing"}, {n: "🏃 Sprint", t: "click", i: "🐾"}, {n: "🦴 Hueso", t: "catch", i: "🦴"} ],
@@ -209,7 +234,22 @@ const ctx = canvas.getContext('2d');
 
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
-  ctx.fillStyle = '#111827'; ctx.fillRect(0, 200, 250, 50);
+
+  // --- DIBUJAR FONDO DINÁMICO ---
+  if(state.bg === 'bg_house') {
+      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200); // Pared
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(30, 40, 60, 70); // Ventana
+      ctx.fillStyle = '#fbbf24'; ctx.fillRect(25, 35, 70, 5); ctx.fillRect(25, 110, 70, 5); // Marco ventana
+      ctx.fillStyle = '#78350f'; ctx.fillRect(0, 200, 250, 50); // Piso madera
+      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.ellipse(125, 225, 80, 15, 0, 0, Math.PI*2); ctx.fill(); // Alfombra
+  } else if(state.bg === 'bg_park') {
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200); // Cielo
+      ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(200, 40, 25, 0, Math.PI*2); ctx.fill(); // Sol
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, 200, 250, 50); // Pasto
+  } else {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200); // Clásico oscuro
+      ctx.fillStyle = '#111827'; ctx.fillRect(0, 200, 250, 50); // Piso oscuro
+  }
 
   const isAdult = state.lv >= 10;
   const scale = isAdult ? 1.35 : 1.0;
@@ -224,7 +264,6 @@ function drawPet() {
 
   if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)';
 
-  // Paletas de colores expandidas para las 25 razas [cuerpo, hocico, color de ojos]
   const colors = {
     husky: ['#475569', '#f8fafc', '#22d3ee'],
     yorkie: ['#78350f', '#fbbf24', '#000'],
@@ -253,7 +292,6 @@ function drawPet() {
     bernard: ['#78350f', '#ffffff', '#000']
   }[state.breed];
 
-  // Cuerpo (Derecha) y Cola
   ctx.fillStyle = colors[0];
   ctx.fillRect(0, 15, 65, 45); 
   ctx.fillRect(60, 10, 10, 20);
@@ -263,17 +301,15 @@ function drawPet() {
   let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 10 : 0;
   ctx.translate(5, 20 + headY);
 
-  // Orejas
   ctx.fillStyle = colors[0];
-  ctx.fillRect(-42, -52, 12, 15); // Oreja izquierda
-  ctx.fillRect(-8, -52, 12, 15); // Oreja derecha
+  ctx.fillRect(-42, -52, 12, 15);
+  ctx.fillRect(-8, -52, 12, 15); 
 
   ctx.fillStyle = colors[0];
   ctx.fillRect(-45, -45, 50, 50); 
 
-  // Trompa coloreada (Especial para Poodle, normal para el resto)
   if (state.breed === 'poodle') {
-      ctx.fillStyle = '#fdf4f5'; // Crema/Blanco grisáceo
+      ctx.fillStyle = '#fdf4f5';
   } else {
       ctx.fillStyle = colors[1];
   }
@@ -399,6 +435,20 @@ function openMenu() {
     document.getElementById('modalTitle').innerText = "EDITAR COMPAÑERO";
     document.getElementById('pName').value = state.name;
     document.getElementById('modal').style.display = 'flex'; 
+}
+
+// FUNCIONES DEL NUEVO MENÚ DE FONDOS
+function openBgMenu() {
+    document.getElementById('bgModal').style.display = 'flex';
+}
+function closeBgMenu() {
+    document.getElementById('bgModal').style.display = 'none';
+}
+function changeBg(newBg) {
+    state.bg = newBg;
+    saveGame();
+    drawPet();
+    closeBgMenu();
 }
 
 window.onload = () => {
