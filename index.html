@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Final Fix</title>
+<title>NeoPixel Pet: Saga Evolution</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,12 +17,10 @@
   
   canvas { width: 100%; height: 380px; background: #000; border-radius: 20px; image-rendering: pixelated; border: 4px solid #374151; }
   
-  /* UI BARS */
   .bar-meta { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; margin-bottom: 4px; color: #9ca3af; }
   .bar-container { background: #020617; height: 14px; border-radius: 7px; margin-bottom: 12px; border: 1px solid #374151; overflow: hidden; }
   .bar-fill { height: 100%; width: 100%; transition: width 0.4s ease; }
   
-  /* BUTTONS */
   .grid-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   button {
     background: #1f2937; color: white; border: none; padding: 14px; border-radius: 16px;
@@ -30,26 +28,26 @@
   }
   button:hover:not(:disabled) { background: #374151; transform: translateY(-2px); }
   button:active { transform: translateY(0); }
-  button:disabled { opacity: 0.3; cursor: not-allowed; }
   .btn-accent { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
   
-  /* GAME ZONE */
   #gameZone {
     height: 320px; background: #020617; border-radius: 20px; border: 2px dashed #4b5563;
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
   }
   .mg-obj { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; }
-
-  /* OVERLAYS */
   .overlay { position: absolute; inset: 0; background: rgba(0,0,40,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; border-radius: 24px; }
   #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+  
+  .save-notify { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; padding: 10px 20px; border-radius: 10px; font-size: 10px; font-weight: bold; opacity: 0; transition: 0.5s; }
 </style>
 </head>
 <body>
 
+<div id="saveMsg" class="save-notify">💾 PROGRESO GUARDADO</div>
+
 <div id="modal">
   <div class="card" style="width: 400px; text-align: center;">
-    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
+    <h2 id="modalTitle" style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
     <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
     <select id="pBreed" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
       <option value="husky">Husky Siberiano</option>
@@ -58,7 +56,8 @@
       <option value="bulldog">Bulldog Fuerte</option>
       <option value="labrador">Labrador Dorado</option>
     </select>
-    <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">ADOPTAR</button>
+    <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">CONFIRMAR</button>
+    <button onclick="resetEverything()" style="width:100%; margin-top:10px; background:#ef444422; color:var(--danger); border:1px solid var(--danger); font-size:8px;">BORRAR PARTIDA ACTUAL</button>
   </div>
 </div>
 
@@ -88,7 +87,7 @@
       <button onclick="performAction('sleep')" style="background:var(--warning)">😴 DORMIR</button>
       <button onclick="performAction('clean')" style="background:var(--success)">🧼 LIMPIAR</button>
     </div>
-    <button onclick="openMenu()" style="width:100%; margin-top:12px; background:none; border:1px solid #374151; color:#6b7280; font-size:10px;">🔁 CAMBIAR RAZA / NOMBRE</button>
+    <button onclick="openMenu()" style="width:100%; margin-top:12px; background:none; border:1px solid #374151; color:#6b7280; font-size:10px;">🔁 AJUSTES DE MASCOTA</button>
   </div>
 
   <div class="card">
@@ -113,13 +112,42 @@
     </div>
 
     <div id="gameZone">
-        <p style="color:#4b5563; font-weight:bold;">Toca el botón de abajo para jugar</p>
+        <p style="color:#4b5563; font-weight:bold;">¡Listo para jugar!</p>
     </div>
-    <button onclick="loadGameMenu()" class="btn-accent" style="width:100%; margin-top:15px; font-size:14px; letter-spacing:1px;">🎮 ABRIR MINIJUEGOS</button>
+    <button onclick="loadGameMenu()" class="btn-accent" style="width:100%; margin-top:15px; font-size:14px;">🎮 ABRIR MINIJUEGOS</button>
   </div>
 </div>
 
 <script>
+// --- LÓGICA DE PERSISTENCIA (GUARDADO) ---
+const SAVE_KEY = 'NEOPIXEL_PET_SAVE_V1';
+
+function saveGame() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    const msg = document.getElementById('saveMsg');
+    msg.style.opacity = 1;
+    setTimeout(() => msg.style.opacity = 0, 2000);
+}
+
+function loadGame() {
+    const savedData = localStorage.getItem(SAVE_KEY);
+    if (savedData) {
+        const parsed = JSON.parse(savedData);
+        Object.assign(state, parsed);
+        state.busy = false; // Resetear estado ocupado por seguridad
+        return true;
+    }
+    return false;
+}
+
+function resetEverything() {
+    if(confirm("¿Seguro que quieres borrar toda tu mascota actual?")) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+}
+
+// --- ESTADO INICIAL ---
 const state = {
   name: 'Doggo', breed: 'husky',
   hunger: 100, energy: 100, clean: 100, happy: 100, xp: 0, lv: 1,
@@ -135,7 +163,6 @@ const gamesConfig = {
 };
 
 let gameIntervals = [];
-
 const canvas = document.getElementById('petCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -166,8 +193,8 @@ function drawPet() {
 
   ctx.fillStyle = colors[0];
   ctx.fillRect(0, 15, 65, 45); 
-  ctx.fillRect(60, 10, 10, 20); // Cola
-  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18); // Patas
+  ctx.fillRect(60, 10, 10, 20);
+  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18);
 
   ctx.save();
   let headY = (state.anim === 'feed' && state.tick % 20 < 10) ? 10 : 0;
@@ -183,7 +210,6 @@ function drawPet() {
   ctx.restore();
 
   if (state.anim === 'feed') { ctx.fillStyle = '#451a03'; ctx.fillRect(-65, 55, 40, 15); }
-
   ctx.restore();
   ctx.filter = 'none';
 }
@@ -193,32 +219,28 @@ function performAction(type) {
     state.busy = true;
     if(type === 'feed') {
         state.anim = 'feed'; state.hunger = Math.min(100, state.hunger + 30); state.clean -= 10;
-        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(10); }, 2000);
+        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(10); saveGame(); }, 2000);
     } else if(type === 'play') {
         if(state.energy < 20) { state.busy = false; return; }
         state.anim = 'play'; state.energy -= 15;
-        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(20); }, 2000);
+        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(20); saveGame(); }, 2000);
     } else if(type === 'sleep') {
         state.anim = 'sleep'; document.getElementById('sleepOverlay').style.display = 'flex';
         let s = 10; const si = setInterval(() => {
             s--; document.getElementById('timer').innerText = s+'s';
-            if(s<=0) { clearInterval(si); state.busy = false; state.anim = 'idle'; state.energy = 100; document.getElementById('sleepOverlay').style.display = 'none'; }
+            if(s<=0) { clearInterval(si); state.busy = false; state.anim = 'idle'; state.energy = 100; document.getElementById('sleepOverlay').style.display = 'none'; saveGame(); }
         }, 1000);
     } else if(type === 'clean') {
-        state.clean = 100; setTimeout(() => { state.busy = false; addXP(5); }, 1000);
+        state.clean = 100; setTimeout(() => { state.busy = false; addXP(5); saveGame(); }, 1000);
     }
 }
 
-// LÓGICA DE MINIJUEGOS CON BOTÓN DEDICADO
 function loadGameMenu() {
-    // Reset total antes de abrir
     gameIntervals.forEach(clearInterval);
     gameIntervals = [];
     state.busy = false; 
-
     const zone = document.getElementById('gameZone');
-    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px; font-weight:bold;">ELIGE UN JUEGO</p><div id="mBtns" style="display:grid; gap:10px; width:85%;"></div>`;
-    
+    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px;">ELIGE UN JUEGO</p><div id="mBtns" style="display:grid; gap:10px; width:85%;"></div>`;
     gamesConfig[state.breed].forEach((g, i) => {
         const b = document.createElement('button');
         b.innerText = g.n;
@@ -228,36 +250,31 @@ function loadGameMenu() {
 }
 
 function startMinigame(idx) {
-    if(state.energy < 15) return alert("Muy cansado para jugar");
+    if(state.energy < 15) return alert("Muy cansado");
     state.busy = true; state.energy -= 15;
     const game = gamesConfig[state.breed][idx];
     const zone = document.getElementById('gameZone');
     zone.innerHTML = '';
-    
     let score = 0;
     
     if(game.t === "catch") {
         const intv = setInterval(() => {
-            const o = document.createElement('div');
-            o.className = 'mg-obj'; o.innerHTML = game.i;
+            const o = document.createElement('div'); o.className = 'mg-obj'; o.innerHTML = game.i;
             o.style.left = Math.random()*80 + '%'; o.style.top = '-50px';
             o.onclick = () => { score++; o.remove(); };
             zone.appendChild(o);
             let top = -50;
-            const fall = setInterval(() => {
-                top += 5; o.style.top = top + 'px';
-                if(top > 300) { clearInterval(fall); o.remove(); }
-            }, 30);
+            const fall = setInterval(() => { top += 5; o.style.top = top + 'px'; if(top > 300) { clearInterval(fall); o.remove(); } }, 30);
             gameIntervals.push(fall);
         }, 700);
         gameIntervals.push(intv);
         setTimeout(() => finishMinigame(score * 10), 8000);
     } else if(game.t === "click") {
-        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; border:4px solid var(--accent); color:white;">${game.i}</button>`;
+        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
         setTimeout(() => finishMinigame(score * 5), 5000);
     } else {
-        zone.innerHTML = `<p style="font-size:10px">¡CLICK EN EL CENTRO!</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px; border:2px solid #374151;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0; box-shadow:0 0 10px white;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.6;"></div></div><button id="go" style="margin-top:25px; background:var(--success)">¡AHORA!</button>`;
+        zone.innerHTML = `<div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
         let p = 0, d = 3;
         const m = setInterval(() => { p += d; if(p >= 190 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
         gameIntervals.push(m);
@@ -269,9 +286,10 @@ function finishMinigame(xp) {
     gameIntervals.forEach(clearInterval);
     gameIntervals = [];
     const zone = document.getElementById('gameZone');
-    zone.innerHTML = `<div style="text-align:center"><h2 style="margin:0">¡RESULTADO!</h2><p style="color:var(--accent); font-size:24px; font-weight:900;">+${xp} XP</p><p style="font-size:10px; color:#6b7280;">Usa el botón azul para jugar de nuevo</p></div>`;
+    zone.innerHTML = `<div style="text-align:center"><h2 style="margin:0">¡FIN!</h2><p style="color:var(--accent); font-size:24px;">+${xp} XP</p></div>`;
     addXP(xp);
     state.busy = false;
+    saveGame();
 }
 
 function addXP(v) {
@@ -285,36 +303,51 @@ function updateUI() {
     document.getElementById('enBar').style.width = state.energy+'%';
     document.getElementById('huBar').style.width = state.hunger+'%';
     document.getElementById('clBar').style.width = state.clean+'%';
-    document.getElementById('haBar').style.width = state.happy+'%';
     document.getElementById('xpTxt').innerText = state.xp+'%';
     document.getElementById('enTxt').innerText = Math.round(state.energy);
     document.getElementById('huTxt').innerText = Math.round(state.hunger);
     document.getElementById('clTxt').innerText = Math.round(state.clean);
     document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
+    document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     document.getElementById('stageLabel').innerText = state.lv >= 10 ? 'ETAPA: ADULTO' : 'ETAPA: CACHORRO';
 }
 
 function startGame() {
-    state.name = document.getElementById('pName').value || 'DOGGO';
+    state.name = document.getElementById('pName').value || state.name;
     state.breed = document.getElementById('pBreed').value;
-    document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     document.getElementById('modal').style.display = 'none';
+    saveGame();
     if(!window.isRun) { loop(); window.isRun = true; }
 }
 
-function openMenu() { document.getElementById('modal').style.display = 'flex'; }
+function openMenu() { 
+    document.getElementById('modalTitle').innerText = "EDITAR COMPAÑERO";
+    document.getElementById('pName').value = state.name;
+    document.getElementById('modal').style.display = 'flex'; 
+}
+
+// AL INICIAR: Cargar datos o mostrar modal
+window.onload = () => {
+    if (loadGame()) {
+        updateUI();
+        document.getElementById('modal').style.display = 'none';
+        loop(); window.isRun = true;
+    }
+};
 
 function loop() {
     setInterval(() => {
         state.tick++;
         if(state.tick % 25 === 0) state.frame = (state.frame + 1) % 2;
         if(!state.busy) {
-            state.hunger = Math.max(0, state.hunger - 0.04);
-            state.energy = Math.max(0, state.energy - 0.02);
-            state.clean = Math.max(0, state.clean - 0.02);
+            state.hunger = Math.max(0, state.hunger - 0.01);
+            state.energy = Math.max(0, state.energy - 0.005);
+            state.clean = Math.max(0, state.clean - 0.005);
         }
         drawPet(); updateUI();
     }, 40);
+    // Auto-guardado cada 30 segundos por si acaso
+    setInterval(saveGame, 30000);
 }
 </script>
 </body>
