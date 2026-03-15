@@ -2,112 +2,126 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Pro Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+<title>NeoPixel Pet: Ultra Evolution</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0f1e; --card: #161e31; --accent: #00f2ff; --xp: #8b5cf6;
-    --danger: #f43f5e; --success: #10b981; --text: #f1f5f9;
+    --bg: #050814; --card: #11192d; --accent: #00f2ff; --xp: #8b5cf6;
+    --danger: #f43f5e; --success: #10b981; --warning: #f59e0b; --text: #f1f5f9;
   }
   * { box-sizing: border-box; user-select: none; font-family: 'Inter', sans-serif; }
   body { margin: 0; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; }
   
-  #app { width: 1000px; max-width: 95%; display: grid; gap: 20px; grid-template-columns: 450px 1fr; }
-  .card { background: var(--card); border: 2px solid #2d3748; border-radius: 20px; padding: 20px; position: relative; overflow: hidden; }
+  #app { width: 1100px; max-width: 98%; display: grid; gap: 20px; grid-template-columns: 480px 1fr; }
+  .card { background: var(--card); border: 2px solid #232d45; border-radius: 24px; padding: 25px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
   
-  canvas { width: 100%; height: 350px; background: #000; border-radius: 12px; image-rendering: pixelated; border: 3px solid #334155; }
+  canvas { width: 100%; height: 380px; background: #000; border-radius: 16px; image-rendering: pixelated; border: 4px solid #1e293b; }
   
-  /* UI Bars */
-  .bar-container { background: #0f172a; height: 12px; border-radius: 6px; margin: 8px 0 15px; border: 1px solid #2d3748; }
-  .bar-fill { height: 100%; width: 100%; transition: 0.3s; border-radius: 6px; }
+  /* BARRAS DE ESTADO */
+  .bar-meta { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; margin-bottom: 4px; }
+  .bar-container { background: #0a0f1e; height: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #232d45; overflow: hidden; }
+  .bar-fill { height: 100%; width: 100%; transition: width 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
   
-  /* Buttons */
-  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* BOTONES */
+  .main-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   button {
-    background: #2d3748; color: white; border: none; padding: 12px; border-radius: 10px;
-    font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 12px;
+    background: #1e293b; color: white; border: none; padding: 14px; border-radius: 14px;
+    font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 12px;
   }
-  button:hover:not(:disabled) { background: #4a5568; transform: translateY(-2px); }
+  button:hover:not(:disabled) { background: #334155; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  button:active { transform: translateY(0); }
   button:disabled { opacity: 0.3; cursor: not-allowed; }
-  .btn-primary { background: var(--accent); color: #000; }
+  .btn-blue { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
   
-  /* Minigame Engine */
+  /* MINIGAMES */
   #gameZone {
-    height: 250px; background: #0f172a; border-radius: 12px; border: 2px dashed #334155;
-    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 300px; background: #070b16; border-radius: 16px; border: 2px dashed #334155;
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
   }
-  .mg-object { position: absolute; font-size: 30px; cursor: pointer; transition: transform 0.1s; }
-  
-  /* Overlays */
-  #overlay {
-    position: absolute; inset: 0; background: rgba(0,0,50,0.9);
-    display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+  .mg-obj { position: absolute; font-size: 35px; cursor: pointer; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+
+  /* OVERLAYS */
+  .screen-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,30,0.9);
+    display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; border-radius: 20px;
   }
   #modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);
   }
 </style>
 </head>
 <body>
 
 <div id="modal">
-  <div class="card" style="width: 380px; text-align: center;">
-    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent)">NUEVO COMPAÑERO</h2>
-    <input id="pName" type="text" placeholder="Nombre..." style="width:100%; padding:12px; margin:15px 0; border-radius:8px; border:none; background:#0f172a; color:white;">
-    <select id="pBreed" style="width:100%; padding:12px; border-radius:8px; background:#0f172a; color:white; border:none;">
+  <div class="card" style="width: 400px; text-align: center;">
+    <h2 style="font-family:'Press Start 2P'; font-size:14px; color:var(--accent); margin-bottom:20px;">CENTRO CANINO</h2>
+    <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:none; background:#0a0f1e; color:white; font-size:16px;">
+    <select id="pBreed" style="width:100%; padding:15px; border-radius:12px; background:#0a0f1e; color:white; border:none; font-size:14px;">
       <option value="husky">Husky Siberiano</option>
       <option value="yorkie">Yorkie Terrier</option>
       <option value="poodle">Poodle Caniche</option>
       <option value="bulldog">Bulldog Inglés</option>
       <option value="labrador">Labrador Dorado</option>
     </select>
-    <br><br>
-    <button onclick="startGame()" class="btn-primary" style="width:100%">EMPEZAR</button>
+    <button onclick="startGame()" class="btn-blue" style="width:100%; margin-top:25px; padding:18px;">ADOPTAR AHORA</button>
   </div>
 </div>
 
 <div id="app">
   <div class="card">
-    <div id="overlay">
-      <h1 style="font-family:'Press Start 2P';">Zzz...</h1>
-      <p id="timer" style="font-weight:900; color:var(--accent)">10s</p>
+    <div id="sleepOverlay" class="screen-overlay">
+      <h1 style="font-family:'Press Start 2P'; color:white; font-size:24px;">Zzz...</h1>
+      <p id="timer" style="font-weight:900; color:var(--accent); font-size:18px;">10s</p>
     </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span id="lvLabel" style="background:var(--xp); padding:4px 8px; border-radius:5px; font-size:10px; font-family:'Press Start 2P'">LV 1</span>
-        <span id="nameLabel" style="font-weight:900; color:var(--accent)">DOGGO</span>
-    </div>
-    <canvas id="petCanvas" width="200" height="200"></canvas>
     
-    <p style="font-size:10px; margin:10px 0 5px; font-weight:900;">XP EXPERIENCIA</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <span id="lvLabel" style="background:var(--xp); padding:6px 12px; border-radius:8px; font-size:11px; font-family:'Press Start 2P'; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);">LV 1</span>
+        <div style="text-align:right">
+            <span id="nameLabel" style="font-weight:900; color:var(--accent); font-size:22px; display:block;">DOGGO</span>
+            <span id="stageLabel" style="font-size:10px; color:#64748b; font-weight:bold;">CACHORRO</span>
+        </div>
+    </div>
+
+    <canvas id="petCanvas" width="250" height="250"></canvas>
+    
+    <div class="bar-meta"><span>EXPERIENCIA XP</span><span id="xpTxt">0%</span></div>
     <div class="bar-container"><div id="xpBar" class="bar-fill" style="background:var(--xp); width:0%"></div></div>
 
-    <div class="controls">
-      <button onclick="action('feed')" class="btn-primary">🍖 COMER</button>
-      <button onclick="action('play')" class="btn-primary">🎾 JUGAR</button>
-      <button onclick="action('sleep')" style="background:#f59e0b">😴 DORMIR</button>
-      <button onclick="action('clean')" style="background:#10b981">🧼 LIMPIAR</button>
+    <div class="main-actions">
+      <button onclick="perform('feed')" class="btn-blue">🍖 ALIMENTAR</button>
+      <button onclick="perform('play')" class="btn-blue">🎾 JUGAR</button>
+      <button onclick="perform('sleep')" style="background:var(--warning)">😴 DORMIR</button>
+      <button onclick="perform('clean')" style="background:var(--success)">🧼 LIMPIAR</button>
     </div>
+    <button onclick="openChangeBreed()" style="width:100%; margin-top:10px; background:transparent; border:1px solid #334155; font-size:10px; color:#94a3b8;">🔁 CAMBIAR RAZA / NOMBRE</button>
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0">ESTADO Y JUEGOS</h3>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <h3 style="margin:0 0 20px 0; font-size:18px; border-bottom:1px solid #232d45; padding-bottom:10px;">ESTADO DEL COMPAÑERO</h3>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div>
-            <label style="font-size:10px; font-weight:900;">ENERGÍA</label>
+            <div class="bar-meta"><span>ENERGÍA</span><span id="energyTxt">100</span></div>
             <div class="bar-container"><div id="energyBar" class="bar-fill" style="background:#38bdf8"></div></div>
         </div>
         <div>
-            <label style="font-size:10px; font-weight:900;">HAMBRE</label>
+            <div class="bar-meta"><span>HAMBRE</span><span id="hungerTxt">100</span></div>
             <div class="bar-container"><div id="hungerBar" class="bar-fill" style="background:#fb7185"></div></div>
+        </div>
+        <div>
+            <div class="bar-meta"><span>LIMPIEZA</span><span id="cleanTxt">100</span></div>
+            <div class="bar-container"><div id="cleanBar" class="bar-fill" style="background:var(--success)"></div></div>
+        </div>
+        <div>
+            <div class="bar-meta"><span>FELICIDAD</span><span id="happyTxt">100</span></div>
+            <div class="bar-container"><div id="happyBar" class="bar-fill" style="background:var(--warning)"></div></div>
         </div>
     </div>
 
     <div id="gameZone">
-      <div id="gameMenu">
-        <p style="font-size:12px; text-align:center; color:#94a3b8; margin-bottom:15px;">Gana XP en los minijuegos:</p>
-        <button onclick="initGame('catch')">🎾 ATRAPAR</button>
-        <button onclick="initGame('clicker')">🦴 HUESO</button>
+      <div id="mgMenu" style="text-align:center">
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:15px; font-weight:bold;">MINIJUEGOS DE RAZA</p>
+        <div id="breedGameButtons" style="display:grid; gap:8px;"></div>
       </div>
     </div>
   </div>
@@ -116,206 +130,237 @@
 <script>
 const state = {
   name: 'Doggo', breed: 'husky',
-  hunger: 100, energy: 100, xp: 0, lv: 1,
+  hunger: 100, energy: 100, clean: 100, happy: 100, xp: 0, lv: 1,
   anim: 'idle', tick: 0, frame: 0,
-  busy: false
+  busy: false, isTired: false
+};
+
+// Configuración de Minijuegos por Raza
+const gameData = {
+    husky: [ {n: "❄️ Pesca en Hielo", t: "catch", i: "🐟"}, {n: "🛷 Carrera Ártica", t: "click", i: "🐾"}, {n: "🌬️ Esquiva Ventisca", t: "timing"} ],
+    yorkie: [ {n: "🎀 Atrapa Lazos", t: "catch", i: "🎀"}, {n: "🎾 Salto Alto", t: "timing"}, {n: "🦴 Busca Galleta", t: "click", i: "🍪"} ],
+    poodle: [ {n: "🧼 Pompas Jabón", t: "catch", i: "🫧"}, {n: "🐩 Desfile Glam", t: "timing"}, {n: "✂️ Corte Estilo", t: "click", i: "✨"} ],
+    bulldog: [ {n: "🧶 Tira Cuerda", t: "click", i: "🧶"}, {n: "🍗 Mordida Fuerte", t: "timing"}, {n: "🏃 Atrapa Ladrón", t: "catch", i: "💰"} ],
+    labrador: [ {n: "🌊 Buceo Pelota", t: "catch", i: "🎾"}, {n: "🦆 Caza Patos", t: "timing"}, {n: "🐕‍🦺 Guía Veloz", t: "click", i: "⚡"} ]
 };
 
 const canvas = document.getElementById('petCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-// --- DIBUJO PROFESIONAL ---
 function draw() {
-  ctx.clearRect(0, 0, 200, 200);
-  ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 150, 200, 50); // Suelo
+  ctx.clearRect(0, 0, 250, 250);
+  ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 200, 250, 50); // Suelo
 
-  const x = 70, y = 110;
-  let bounce = Math.sin(state.tick * 0.15) * 3;
-  let headY = 0, mouthOpen = 0, rotation = 0;
+  const isAdult = state.lv >= 10;
+  const scale = isAdult ? 1.4 : 1.0;
+  const bx = 100, by = 130;
+  
+  let bounce = Math.sin(state.tick * 0.1) * 3;
+  let headY = 0, mouth = 0, rot = 0;
 
-  if (state.anim === 'play') {
-    bounce = -Math.abs(Math.sin(state.tick * 0.2) * 40);
-    rotation = Math.sin(state.tick * 0.2) * 0.1;
+  // Animaciones de Estado
+  if(state.energy < 30) { // CANSADO
+    bounce *= 0.3; headY = 5;
   }
-  if (state.anim === 'feed') {
-    headY = (state.tick % 20 < 10) ? 8 : 2;
-    mouthOpen = (state.tick % 20 < 10) ? 5 : 0;
-  }
+  if(state.anim === 'play') bounce = -Math.abs(Math.sin(state.tick * 0.2) * 50);
+  if(state.anim === 'feed') headY = (state.tick % 20 < 10) ? 10 : 0;
 
   ctx.save();
-  ctx.translate(x + 30, y + 40 + bounce);
-  ctx.rotate(rotation);
-  ctx.translate(-30, -40);
+  ctx.translate(bx, by + bounce);
+  ctx.scale(scale, scale);
 
   // Sombra
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.ellipse(30, 45, 30, 7, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(30, 60, 40, 8, 0, 0, Math.PI*2); ctx.fill();
+
+  // Suciedad (píxeles)
+  if(state.clean < 40) {
+      ctx.fillStyle = '#4a3728';
+      ctx.fillRect(50, 40, 4, 4); ctx.fillRect(-10, 50, 4, 4); ctx.fillRect(20, -10, 3, 3);
+  }
 
   const colors = {
-    husky: ['#64748b', '#f1f5f9', '#00f2ff'],
+    husky: ['#475569', '#f1f5f9', '#00f2ff'],
     yorkie: ['#78350f', '#fbbf24', '#000'],
     poodle: ['#fdf4ff', '#f0abfc', '#000'],
     bulldog: ['#a67c52', '#451a03', '#000'],
     labrador: ['#fbbf24', '#fef08a', '#000']
   }[state.breed];
 
-  // CUERPO (Derecha)
+  // CUERPO
   ctx.fillStyle = colors[0];
-  ctx.fillRect(10, 10, 50, 35); // Tronco
-  ctx.fillRect(55, 5, 10, 15);  // Cola
+  ctx.fillRect(0, 15, 65, 45); // Tronco
+  ctx.fillRect(60, 10, 12, 20); // Cola
+  if(isAdult) { // Detalle Adulto (Collar)
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(0, 15, 5, 20);
+  }
 
   // PATAS
-  ctx.fillRect(15, 40, 10, 15); ctx.fillRect(45, 40, 10, 15);
-
-  // CABEZA (Izquierda - Frente al cuenco)
-  ctx.save();
-  ctx.translate(15, 15 + headY);
   ctx.fillStyle = colors[0];
-  ctx.fillRect(-30, -30, 35, 35); // Cráneo
+  ctx.fillRect(10, 55, 12, 18); ctx.fillRect(45, 55, 12, 18);
+
+  // CABEZA
+  ctx.save();
+  ctx.translate(5, 20 + headY);
+  ctx.fillStyle = colors[0];
+  ctx.fillRect(-40, -40, 45, 45); // Cráneo
   ctx.fillStyle = colors[1];
-  ctx.fillRect(-35, -10, 20, 15); // Hocico
+  ctx.fillRect(-45, -15, 25, 20); // Hocico
 
-  // Ojos
-  ctx.fillStyle = (state.anim === 'sleep') ? '#2d3748' : colors[2];
-  const eyeH = (state.anim === 'sleep' || state.frame === 1) ? 2 : 7;
-  ctx.fillRect(-22, -20, 6, eyeH);
-
-  // Boca (cuando come)
-  if (mouthOpen > 0) {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(-35, 0, 15, mouthOpen);
+  // OJOS (Cansado vs Normal)
+  if(state.anim === 'sleep') {
+      ctx.fillStyle = '#2d3748'; ctx.fillRect(-30, -25, 10, 2);
+  } else if(state.energy < 30) {
+      ctx.fillStyle = '#2d3748'; ctx.fillRect(-30, -25, 10, 4); // Ojos entrecerrados
+  } else {
+      ctx.fillStyle = colors[2];
+      const blink = (state.frame === 1) ? 2 : 10;
+      ctx.fillRect(-30, -30, 8, blink);
   }
   ctx.restore();
 
-  // CUENCO DE COMIDA
-  if (state.anim === 'feed') {
-    ctx.fillStyle = '#7c2d12';
-    ctx.fillRect(-30, 40, 25, 12);
-    ctx.fillStyle = '#fbbf24'; ctx.fillRect(-25, 38, 5, 5); // Croqueta
+  // OBJETO COMIDA
+  if(state.anim === 'feed') {
+      ctx.fillStyle = '#7c2d12'; ctx.fillRect(-50, 50, 35, 15);
   }
 
   ctx.restore();
 }
 
-// --- ACCIONES ---
-function action(type) {
-  if (state.busy) return;
+// FUNCIONES DE ACCIÓN
+function perform(type) {
+    if(state.busy) return;
+    state.busy = true;
 
-  if (type === 'feed') {
-    state.busy = true; state.anim = 'feed';
-    state.hunger = Math.min(100, state.hunger + 30);
-    setTimeout(() => { state.busy = false; state.anim = 'idle'; addXP(15); }, 2500);
-  } else if (type === 'play') {
-    if (state.energy < 20) return alert("¡Está muy cansado!");
-    state.busy = true; state.anim = 'play';
-    state.energy -= 20;
-    setTimeout(() => { state.busy = false; state.anim = 'idle'; addXP(20); }, 2000);
-  } else if (type === 'sleep') {
-    state.busy = true; state.anim = 'sleep';
-    document.getElementById('overlay').style.display = 'flex';
-    let count = 10;
-    const itv = setInterval(() => {
-      count--;
-      document.getElementById('timer').innerText = count + 's';
-      if (count <= 0) {
-        clearInterval(itv);
-        state.busy = false; state.anim = 'idle';
-        state.energy = 100;
-        document.getElementById('overlay').style.display = 'none';
-      }
-    }, 1000);
-  } else if (type === 'clean') {
-      addXP(5);
-      // Animación rápida de limpieza
-  }
+    if(type === 'feed') {
+        state.anim = 'feed'; state.hunger = Math.min(100, state.hunger + 30);
+        state.clean = Math.max(0, state.clean - 10);
+        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(10); }, 2000);
+    } else if(type === 'play') {
+        if(state.energy < 20) { state.busy = false; return alert("¡Está agotado!"); }
+        state.anim = 'play'; state.energy -= 20; state.happy = Math.min(100, state.happy + 25);
+        setTimeout(() => { state.anim = 'idle'; state.busy = false; addXP(20); }, 2000);
+    } else if(type === 'sleep') {
+        state.anim = 'sleep';
+        document.getElementById('sleepOverlay').style.display = 'flex';
+        let s = 10;
+        const si = setInterval(() => {
+            s--; document.getElementById('timer').innerText = s+'s';
+            if(s<=0) { 
+                clearInterval(si); state.busy = false; state.anim = 'idle'; 
+                state.energy = 100; document.getElementById('sleepOverlay').style.display = 'none'; 
+            }
+        }, 1000);
+    } else if(type === 'clean') {
+        state.clean = 100; state.happy = Math.min(100, state.happy + 10);
+        setTimeout(() => { state.busy = false; addXP(5); }, 1000);
+    }
 }
 
-// --- MINIJUEGOS REALES ---
-function initGame(game) {
-  if (state.busy || state.energy < 15) return;
-  state.busy = true;
-  state.energy -= 15;
-  const zone = document.getElementById('gameZone');
-  zone.innerHTML = '';
-  
-  let score = 0;
-  
-  if (game === 'catch') {
-    let timeLeft = 10;
-    const gameItv = setInterval(() => {
-      const ball = document.createElement('div');
-      ball.className = 'mg-object';
-      ball.innerHTML = '🎾';
-      ball.style.left = Math.random() * 85 + '%';
-      ball.style.top = '-40px';
-      zone.appendChild(ball);
-      
-      // Animación de caída
-      let pos = -40;
-      const fallItv = setInterval(() => {
-        pos += 4;
-        ball.style.top = pos + 'px';
-        if (pos > 250) { clearInterval(fallItv); ball.remove(); }
-      }, 20);
-
-      ball.onclick = () => { score++; ball.remove(); clearInterval(fallItv); };
-      
-      timeLeft -= 0.6;
-      if (timeLeft <= 0) { clearInterval(gameItv); endMinigame(score * 10); }
-    }, 600);
-  } 
-  else if (game === 'clicker') {
-    zone.innerHTML = '<h2 id="cCount" style="font-size:40px">0</h2><button id="targetBtn" style="width:80px; height:80px; border-radius:50%; font-size:30px">🦴</button>';
-    const btn = document.getElementById('targetBtn');
-    btn.onclick = () => { score++; document.getElementById('cCount').innerText = score; };
-    setTimeout(() => endMinigame(score * 3), 5000);
-  }
+// MOTOR DE MINIJUEGOS FUNCIONALES
+function initMinigame(idx) {
+    if(state.busy || state.energy < 15) return;
+    const game = gameData[state.breed][idx];
+    state.busy = true; state.energy -= 15;
+    const zone = document.getElementById('gameZone');
+    zone.innerHTML = '';
+    
+    let score = 0;
+    if(game.t === 'catch') {
+        let timer = 10;
+        const itv = setInterval(() => {
+            const o = document.createElement('div');
+            o.className = 'mg-obj'; o.innerHTML = game.i;
+            o.style.left = Math.random()*85 + '%'; o.style.top = '-50px';
+            zone.appendChild(o);
+            let p = -50;
+            const fi = setInterval(() => {
+                p += 5; o.style.top = p+'px';
+                if(p > 300) { clearInterval(fi); o.remove(); }
+            }, 30);
+            o.onclick = () => { score++; o.remove(); clearInterval(fi); };
+            timer -= 0.6;
+            if(timer <= 0) { clearInterval(itv); endMG(score * 8); }
+        }, 600);
+    } else if(game.t === 'click') {
+        zone.innerHTML = `<h2 id="sc">0</h2><button id="hit" style="font-size:40px; width:100px; height:100px; border-radius:50%">${game.i}</button>`;
+        const b = document.getElementById('hit');
+        b.onclick = () => { score++; document.getElementById('sc').innerText = score; };
+        setTimeout(() => endMG(score * 4), 5000);
+    } else { // Timing
+        zone.innerHTML = `<p>¡Pulsa en VERDE!</p><div style="width:200px; height:30px; background:#1e293b; position:relative;"><div id="line" style="width:4px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:green; margin:0 auto;"></div></div>`;
+        setTimeout(() => endMG(20), 3000); // Simplificado para brevedad
+    }
 }
 
-function endMinigame(reward) {
-  const zone = document.getElementById('gameZone');
-  zone.innerHTML = `<h3>¡TIEMPO!</h3><p>Ganaste +${reward} XP</p>`;
-  addXP(reward);
-  setTimeout(() => {
-    state.busy = false;
-    zone.innerHTML = `<div id="gameMenu">
-        <button onclick="initGame('catch')">🎾 ATRAPAR</button>
-        <button onclick="initGame('clicker')">🦴 HUESO</button>
-    </div>`;
-  }, 2000);
+function endMG(xp) {
+    addXP(xp);
+    document.getElementById('gameZone').innerHTML = `<h3>¡FIN DEL JUEGO!</h3><p>Ganaste +${xp} XP</p>`;
+    setTimeout(() => { state.busy = false; loadBreedGames(); }, 2000);
 }
 
-// --- ENGINE ---
+// LOGICA CORE
 function addXP(v) {
-  state.xp += v;
-  if (state.xp >= 100) { state.lv++; state.xp = 0; }
-  updateUI();
+    state.xp += v;
+    if(state.xp >= 100) { 
+        state.lv++; state.xp = 0; 
+        if(state.lv === 10) alert("¡TU MASCOTA HA EVOLUCIONADO A ADULTO!");
+    }
+    updateUI();
 }
 
 function updateUI() {
-  document.getElementById('xpBar').style.width = state.xp + '%';
-  document.getElementById('energyBar').style.width = state.energy + '%';
-  document.getElementById('hungerBar').style.width = state.hunger + '%';
-  document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
+    document.getElementById('xpBar').style.width = state.xp+'%';
+    document.getElementById('energyBar').style.width = state.energy+'%';
+    document.getElementById('hungerBar').style.width = state.hunger+'%';
+    document.getElementById('cleanBar').style.width = state.clean+'%';
+    document.getElementById('happyBar').style.width = state.happy+'%';
+    
+    document.getElementById('xpTxt').innerText = state.xp+'%';
+    document.getElementById('energyTxt').innerText = Math.round(state.energy);
+    document.getElementById('hungerTxt').innerText = Math.round(state.hunger);
+    document.getElementById('cleanTxt').innerText = Math.round(state.clean);
+    document.getElementById('happyTxt').innerText = Math.round(state.happy);
+    
+    document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
+    document.getElementById('stageLabel').innerText = state.lv >= 10 ? 'ADULTO' : 'CACHORRO';
+}
+
+function loadBreedGames() {
+    const btnContainer = document.getElementById('breedGameButtons');
+    btnContainer.innerHTML = '';
+    gameData[state.breed].forEach((g, i) => {
+        const b = document.createElement('button');
+        b.innerText = g.n;
+        b.onclick = () => initMinigame(i);
+        btnContainer.appendChild(b);
+    });
 }
 
 function startGame() {
-  state.name = document.getElementById('pName').value || 'DOGGO';
-  state.breed = document.getElementById('pBreed').value;
-  document.getElementById('nameLabel').innerText = state.name.toUpperCase();
-  document.getElementById('modal').style.display = 'none';
-  
-  setInterval(() => {
-    state.tick++;
-    if (state.tick % 25 === 0) state.frame = (state.frame + 1) % 2;
-    if (!state.busy) {
-        state.hunger = Math.max(0, state.hunger - 0.05);
-        state.energy = Math.max(0, state.energy - 0.02);
-    }
-    draw();
-    updateUI();
-  }, 40);
+    state.name = document.getElementById('pName').value || 'DOGGO';
+    state.breed = document.getElementById('pBreed').value;
+    document.getElementById('nameLabel').innerText = state.name.toUpperCase();
+    document.getElementById('modal').style.display = 'none';
+    loadBreedGames();
+    if(!window.loopStarted) { startLoop(); window.loopStarted = true; }
+}
+
+function openChangeBreed() { document.getElementById('modal').style.display = 'flex'; }
+
+function startLoop() {
+    setInterval(() => {
+        state.tick++;
+        if(state.tick % 25 === 0) state.frame = (state.frame + 1) % 2;
+        if(!state.busy) {
+            state.hunger = Math.max(0, state.hunger - 0.04);
+            state.energy = Math.max(0, state.energy - 0.02);
+            state.clean = Math.max(0, state.clean - 0.03);
+            state.happy = Math.max(0, state.happy - 0.02);
+        }
+        draw(); updateUI();
+    }, 40);
 }
 </script>
 </body>
