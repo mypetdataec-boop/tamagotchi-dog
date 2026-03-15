@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Evolución Total</title>
+<title>NeoPixel Pet: Evolución Total (25 Razas)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -63,6 +63,24 @@
       <option value="doberman">Doberman Fiel</option>
       <option value="labrador">Labrador Dorado</option>
       <option value="yorkie">Yorkie Terrier</option>
+      <option value="bulldog">Bulldog Fuerte</option>
+      <option value="chihuahua">Chihuahua Veloz</option>
+      <option value="dalmatian">Dálmata Veloz</option>
+      <option value="rottweiler">Rottweiler Guardia</option>
+      <option value="shiba">Shiba Inu</option>
+      <option value="corgi">Corgi Real</option>
+      <option value="boxer">Boxer Juguetón</option>
+      <option value="dane">Gran Danés</option>
+      <option value="schnauzer">Schnauzer Listo</option>
+      <option value="dachshund">Perro Salchicha</option>
+      <option value="pomeranian">Pomerania Pelusa</option>
+      <option value="shihtzu">Shih Tzu Zen</option>
+      <option value="collie">Border Collie</option>
+      <option value="basset">Basset Hound</option>
+      <option value="chow">Chow Chow</option>
+      <option value="mastiff">Mastín Inglés</option>
+      <option value="greyhound">Galgo Veloz</option>
+      <option value="bernard">San Bernardo</option>
     </select>
     <select id="pBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
       <option value="bg_house">🏡 Interior de la Casa</option>
@@ -88,6 +106,24 @@
       <option value="doberman">Doberman Fiel</option>
       <option value="labrador">Labrador Dorado</option>
       <option value="yorkie">Yorkie Terrier</option>
+      <option value="bulldog">Bulldog Fuerte</option>
+      <option value="chihuahua">Chihuahua Veloz</option>
+      <option value="dalmatian">Dálmata Veloz</option>
+      <option value="rottweiler">Rottweiler Guardia</option>
+      <option value="shiba">Shiba Inu</option>
+      <option value="corgi">Corgi Real</option>
+      <option value="boxer">Boxer Juguetón</option>
+      <option value="dane">Gran Danés</option>
+      <option value="schnauzer">Schnauzer Listo</option>
+      <option value="dachshund">Perro Salchicha</option>
+      <option value="pomeranian">Pomerania Pelusa</option>
+      <option value="shihtzu">Shih Tzu Zen</option>
+      <option value="collie">Border Collie</option>
+      <option value="basset">Basset Hound</option>
+      <option value="chow">Chow Chow</option>
+      <option value="mastiff">Mastín Inglés</option>
+      <option value="greyhound">Galgo Veloz</option>
+      <option value="bernard">San Bernardo</option>
     </select>
     <select id="optBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
       <option value="bg_house">🏡 Interior de la Casa</option>
@@ -187,7 +223,7 @@
 
 <script>
 // --- LÓGICA DE PERSISTENCIA ---
-const SAVE_KEY = 'NEOPIXEL_PET_V3'; 
+const SAVE_KEY = 'NEOPIXEL_PET_V4'; // Actualizado para recargar todas las razas
 
 const defaultState = {
   name: 'Doggo', breed: 'husky', bg: 'bg_house',
@@ -257,14 +293,27 @@ function drawPet() {
   let bounce = Math.floor(Math.sin(state.tick * (isTired || state.sick ? 0.05 : 0.15)) * 3);
   if (state.anim === 'play') bounce = -Math.abs(Math.floor(Math.sin(state.tick * 0.3) * 15));
 
+  // --- Paletas de colores expandidas ---
   const colors = {
+    // Originales/Corregidas
     husky: ['#64748b', '#f8fafc', '#22d3ee'], beagle: ['#b45309', '#ffffff', '#000'],
     pug: ['#d4d4d8', '#000000', '#000'], poodle: ['#fdf4ff', '#f0abfc', '#000'],
     doberman: ['#1c1917', '#b45309', '#000'], labrador: ['#fbbf24', '#fef08a', '#000'],
-    yorkie: ['#78350f', '#fbbf24', '#000']
+    yorkie: ['#64748b', '#fcd34d', '#000'], // MODIFICADO: Medio gris/tostado
+    // Nuevas
+    bulldog: ['#a67c52', '#000', '#000'], chihuahua: ['#fcd34d', '#fef3c7', '#000'],
+    dalmatian: ['#ffffff', '#000000', '#000'], rottweiler: ['#1c1917', '#b45309', '#000'],
+    shiba: ['#ea580c', '#ffffff', '#000'], corgi: ['#f97316', '#ffffff', '#000'],
+    boxer: ['#b45309', '#ffffff', '#000'], dane: ['#78716c', '#000000', '#000'],
+    schnauzer: ['#78716c', '#d1d5db', '#000'], dachshund: ['#78350f', '#fbbf24', '#000'],
+    pomeranian: ['#f97316', '#ffedd5', '#000'], shihtzu: ['#e7e5e4', '#78716c', '#000'],
+    collie: ['#b45309', '#ffffff', '#000'], basset: ['#78350f', '#ffffff', '#000'],
+    chow: ['#ea580c', '#000', '#000'], mastiff: ['#a67c52', '#1c1917', '#000'],
+    greyhound: ['#9ca3af', '#f3f4f6', '#000'], bernard: ['#78350f', '#ffffff', '#000']
   }[state.breed] || ['#b45309', '#ffffff', '#000'];
 
-  const floppyEars = ['beagle', 'pug', 'labrador'];
+  // Razas con orejas caídas configuradas
+  const floppyEars = ['beagle', 'pug', 'labrador', 'bulldog', 'corgi', 'boxer', 'dachshund', 'shihtzu', 'basset', 'bernard'];
   const hasFloppyEars = floppyEars.includes(state.breed);
 
   ctx.save();
@@ -340,7 +389,36 @@ function drawPet() {
   ctx.filter = 'none';
 }
 
-// --- SISTEMAS DE SALUD Y ACCIONES ---
+// --- MINIJUEGOS TEMÁTICOS (CONFIGURACIÓN EXTRA) ---
+const gamesConfig = {
+    husky: [ {n: "❄️ Pesca Hielo", t: "catch", i: "🐟"}, {n: "🛷 Carrera", t: "click", i: "🐾"}, {n: "🌬️ Ventisca", t: "timing"} ],
+    beagle: [ {n: "🦊 Rastro", t: "catch", i: "🦊"}, {n: "🐰 Liebre", t: "timing"}, {n: "🌳 Aullido", t: "click", i: "🎵"} ],
+    pug: [ {n: "🍕 Pizza", t: "catch", i: "🍕"}, {n: "💤 Ronquido", t: "timing"}, {n: "📸 Selfie", t: "click", i: "📸"} ],
+    poodle: [ {n: "🫧 Burbujas", t: "catch", i: "🫧"}, {n: "🐩 Desfile", t: "timing"}, {n: "✨ Peluquería", t: "click", i: "✨"} ],
+    doberman: [ {n: "🛡️ Guardia", t: "timing"}, {n: "🏃 Sprint", t: "click", i: "🐾"}, {n: "🦴 Hueso", t: "catch", i: "🦴"} ],
+    labrador: [ {n: "🌊 Buceo", t: "catch", i: "🎾"}, {n: "🦆 Pato", t: "timing"}, {n: "🐕‍🦺 Guía", t: "click", i: "⚡"} ],
+    yorkie: [ {n: "🎀 Lazos", t: "catch", i: "🎀"}, {n: "🎾 Saltos", t: "timing"}, {n: "🍪 Galletas", t: "click", i: "🍪"} ],
+    bulldog: [ {n: "🧶 Cuerda", t: "click", i: "🧶"}, {n: "🥩 Mordida", t: "timing"}, {n: "💰 Ladrón", t: "catch", i: "💰"} ],
+    chihuahua: [ {n: "🌶️ Chile", t: "catch", i: "🌶️"}, {n: "👜 Bolso", t: "timing"}, {n: "🗣️ Ladrido", t: "click", i: "🗣️"} ],
+    dalmatian: [ {n: "🚒 Fuego", t: "timing"}, {n: "🔴 Puntos", t: "click", i: "🔴"}, {n: "🏃 Carrera", t: "catch", i: "🐾"} ],
+    rottweiler: [ {n: "💪 Fuerza", t: "timing"}, {n: "🥩 Carne", t: "catch", i: "🥩"}, {n: "🛑 Guardia", t: "click", i: "🛑"} ],
+    shiba: [ {n: "🪙 Cripto", t: "catch", i: "🪙"}, {n: "🦊 Zorro", t: "timing"}, {n: "🌸 Sakura", t: "click", i: "🌸"} ],
+    corgi: [ {n: "👑 Corona", t: "catch", i: "👑"}, {n: "🍑 Trasero", t: "timing"}, {n: "🐑 Rebaño", t: "click", i: "🐑"} ],
+    boxer: [ {n: "🥊 Guantes", t: "click", i: "🥊"}, {n: "🦘 Salto", t: "timing"}, {n: "🎾 Pelota", t: "catch", i: "🎾"} ],
+    dane: [ {n: "🦒 Jirafa", t: "timing"}, {n: "🏰 Castillo", t: "click", i: "🏰"}, {n: "🍖 Banquete", t: "catch", i: "🍖"} ],
+    schnauzer: [ {n: "🐀 Ratones", t: "catch", i: "🐀"}, {n: "🧔 Barba", t: "timing"}, {n: "🎩 Elegancia", t: "click", i: "🎩"} ],
+    dachshund: [ {n: "🌭 Salchicha", t: "catch", i: "🌭"}, {n: "🕳️ Hoyo", t: "timing"}, {n: "🪵 Tronco", t: "click", i: "🪵"} ],
+    pomeranian: [ {n: "☁️ Nube", t: "catch", i: "☁️"}, {n: "🎀 Lazo", t: "click", i: "🎀"}, {n: "💇‍♀️ Cepillo", t: "timing"} ],
+    shihtzu: [ {n: "🧘 Zen", t: "timing"}, {n: "🏵️ Flor", t: "catch", i: "🏵️"}, {n: "👑 Rey", t: "click", i: "👑"} ],
+    collie: [ {n: "🐑 Ovejas", t: "catch", i: "🐑"}, {n: "🥏 Frisbee", t: "timing"}, {n: "🧩 Puzzle", t: "click", i: "🧩"} ],
+    basset: [ {n: "👂 Orejas", t: "timing"}, {n: "🦡 Tejón", t: "catch", i: "🦡"}, {n: "💤 Siesta", t: "click", i: "💤"} ],
+    chow: [ {n: "🦁 León", t: "timing"}, {n: "👅 Lengua", t: "click", i: "👅"}, {n: " dumplings Dumpling", t: "catch", i: "🥟"} ],
+    mastiff: [ {n: "🛡️ Escudo", t: "click", i: "🛡️"}, {n: "🐻 Oso", t: "timing"}, {n: "🍖 Gigante", t: "catch", i: "🍖"} ],
+    greyhound: [ {n: "🐇 Liebre", t: "catch", i: "🐇"}, {n: "⚡ Rayo", t: "timing"}, {n: "🥇 Medalla", t: "click", i: "🥇"} ],
+    bernard: [ {n: "🛢️ Barril", t: "click", i: "🛢️"}, {n: "🏔️ Nieve", t: "timing"}, {n: "⛑️ Rescate", t: "catch", i: "⛑️"} ]
+};
+
+// --- SISTEMAS DE SALUD Y ACCIONES (PRESERVADO V3) ---
 function performAction(type) {
     if(state.busy) return;
     state.busy = true;
@@ -391,28 +469,32 @@ function addXP(v) {
     }, 25);
 }
 
-// --- MINIJUEGOS ---
+// --- MINIJUEGOS Y MONEDAS (ACTUALIZADO CON TEMA) ---
 function loadGameMenu() {
     if (state.sick) return alert("¡Tu mascota está enferma!");
     gameIntervals.forEach(clearInterval); gameIntervals = []; state.busy = false; 
     const zone = document.getElementById('gameZone');
-    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px;">ELIGE UN JUEGO</p>
+    const bConfig = gamesConfig[state.breed] || gamesConfig['husky'];
+    
+    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px;">ELIGE UN JUEGO (${state.breed.toUpperCase()})</p>
     <div style="display:grid; gap:10px; width:85%;">
-        <button onclick="startMinigame('catch')" class="btn-accent">🍎 ATRAPAR</button>
-        <button onclick="startMinigame('click')" class="btn-accent">⚡ REFLEJOS</button>
-        <button onclick="startMinigame('timing')" class="btn-accent">⏱️ TIEMPO</button>
+        <button onclick="startMinigame(0)" class="btn-accent">${bConfig[0].n}</button>
+        <button onclick="startMinigame(1)" class="btn-accent">${bConfig[1].n}</button>
+        <button onclick="startMinigame(2)" class="btn-accent">${bConfig[2].n}</button>
     </div>`;
 }
 
-function startMinigame(type) {
+function startMinigame(idx) {
     if(state.energy < 15) return alert("Muy cansado");
     state.busy = true; state.energy -= 15;
     const zone = document.getElementById('gameZone'); zone.innerHTML = '';
+    const game = gamesConfig[state.breed][idx];
     let score = 0;
     
-    if(type === "catch") {
+    if(game.t === "catch") {
         const intv = setInterval(() => {
-            const o = document.createElement('div'); o.className = 'mg-obj'; o.innerHTML = Math.random() > 0.3 ? '🍖' : '🪙';
+            const o = document.createElement('div'); o.className = 'mg-obj';
+            o.innerHTML = Math.random() > 0.3 ? game.i : '🪙';
             const isCoin = o.innerHTML === '🪙';
             o.style.left = Math.random()*80 + '%'; o.style.top = '-50px';
             o.onclick = () => { if(isCoin) state.coins+=2; else score++; o.remove(); };
@@ -423,12 +505,12 @@ function startMinigame(type) {
         }, 800);
         gameIntervals.push(intv);
         setTimeout(() => finishMinigame(score * 10, score * 2), 8000); 
-    } else if(type === "click") {
-        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">🐾</button>`;
+    } else if(game.t === "click") {
+        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
         setTimeout(() => finishMinigame(score * 5, Math.floor(score/3)), 5000); 
-    } else if (type === "timing") {
-        zone.innerHTML = `<div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
+    } else if (game.t === "timing") {
+        zone.innerHTML = `<p style="font-size:10px; margin-bottom:10px; color:#9ca3af;">${game.n}</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
         let p = 0, d = 4;
         const m = setInterval(() => { p += d; if(p >= 190 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
         gameIntervals.push(m);
@@ -444,7 +526,7 @@ function finishMinigame(xp, extraCoins) {
     addXP(xp); state.busy = false; saveGame();
 }
 
-// --- MENÚ OPCIONES / TIENDA ---
+// --- MENÚ OPCIONES / TIENDA (PRESERVADO V3) ---
 function openShop() {
     document.getElementById('shopCoins').innerText = state.coins;
     const items = ['tophat', 'redcollar', 'pinkbow'];
@@ -464,14 +546,14 @@ function openShop() {
 function openOptions() {
     document.getElementById('optName').value = state.name;
     document.getElementById('optBreed').value = state.breed;
-    document.getElementById('optBg').value = state.bg || 'bg_house'; // Cargar fondo actual
+    document.getElementById('optBg').value = state.bg || 'bg_house'; 
     document.getElementById('optionsModal').style.display = 'flex';
 }
 
 function saveOptions() {
     state.name = document.getElementById('optName').value || 'Doggo';
     state.breed = document.getElementById('optBreed').value;
-    state.bg = document.getElementById('optBg').value; // Guardar nuevo fondo
+    state.bg = document.getElementById('optBg').value; 
     closeModals();
     saveGame();
     drawPet();
@@ -500,7 +582,7 @@ function toggleEquip(id) {
     saveGame(); drawPet(); openShop();
 }
 
-// --- INICIALIZACIÓN Y BUCLE ---
+// --- INICIALIZACIÓN Y BUCLE (PRESERVADO V3) ---
 function updateUI() {
     document.getElementById('xpBar').style.width = state.xp+'%';
     document.getElementById('enBar').style.width = state.energy+'%';
