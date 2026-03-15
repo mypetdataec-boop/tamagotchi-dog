@@ -3,30 +3,30 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>NeoPixel Tamagotchi — Ultimate</title>
+<title>NeoPixel Tamagotchi — Evolution v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050a0f; --card: rgba(15, 23, 42, 0.9); --accent: #00f2ff;
+    --bg: #050a0f; --card: rgba(15, 23, 42, 0.95); --accent: #00f2ff;
     --text: #f1f5f9; --muted: #94a3b8; --border: rgba(255,255,255,0.1);
     --gold: #fbbf24; --xp: #8b5cf6; --danger: #f43f5e; --clean: #10b981;
   }
-  * { box-sizing: border-box; cursor: default; }
+  * { box-sizing: border-box; cursor: default; user-select: none; }
   body {
     margin: 0; font-family: 'Inter', sans-serif;
-    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
     color: var(--text); display: flex; align-items: center; justify-content: center;
     min-height: 100vh; overflow: hidden;
   }
   #app {
-    width: 1000px; max-width: 95%; display: grid;
+    width: 1050px; max-width: 98%; display: grid;
     gap: 20px; grid-template-columns: 480px 1fr;
   }
   .card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 20px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    position: relative;
   }
-  #left { display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; }
   
   canvas#world {
     width: 100%; height: 380px; background: #000;
@@ -34,316 +34,430 @@
     image-rendering: pixelated;
   }
   
-  /* Stats UI */
-  .stat-group { margin-bottom: 10px; }
-  .label-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-  .bar-bg { background: #1e293b; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-  .bar-fill { height: 100%; transition: width 0.4s ease; }
+  /* UI Layout */
+  .label-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+  .bar-bg { background: #0f172a; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+  .bar-fill { height: 100%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   
-  #lvBadge {
-    background: var(--xp); color: white; padding: 5px 12px;
-    border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 10px;
-  }
+  #lvBadge { background: var(--xp); color: white; padding: 6px 12px; border-radius: 8px; font-family: 'Press Start 2P'; font-size: 9px; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
 
   /* Buttons */
-  .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+  .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   button {
     background: #334155; color: white; border: none; padding: 12px;
-    border-radius: 10px; font-weight: 700; transition: 0.2s; cursor: pointer;
-    font-size: 12px;
+    border-radius: 12px; font-weight: 700; transition: 0.2s; cursor: pointer;
   }
-  button:hover:not(:disabled) { background: #475569; transform: translateY(-2px); }
-  button:disabled { opacity: 0.4; filter: grayscale(1); }
+  button:hover:not(:disabled) { background: #475569; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
   button.primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
   button.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
-  button.success { background: linear-gradient(135deg, #10b981, #059669); }
+
+  /* Minigame Area */
+  #minigameArea {
+    margin-top: 15px; min-height: 220px; background: rgba(0,0,0,0.3);
+    border-radius: 15px; border: 2px dashed #334155;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .mg-btn { width: 90%; margin: 5px; font-size: 11px; background: #1e293b; border: 1px solid #334155; }
+  
+  /* Overlays */
+  .overlay {
+    position: absolute; inset: 0; border-radius: 15px; z-index: 100;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  #sleepOverlay { background: rgba(0,10,40,0.85); color: #fff; font-family: 'Press Start 2P'; }
 
   /* Modal */
   #modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-    display: flex; align-items: center; justify-content: center; z-index: 100;
-    backdrop-filter: blur(5px);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
   }
-  .modal-content { width: 400px; text-align: center; border: 2px solid var(--accent); }
-  select, input {
-    width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px;
-    background: #0f172a; border: 1px solid #334155; color: white; font-weight: bold;
-  }
+  .modal-content { width: 420px; text-align: center; border: 2px solid var(--accent); }
+  input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #0f172a; color: #fff; border: 1px solid #334155; }
 
-  /* Overlay de sueño */
-  #sleepOverlay {
-    position: absolute; inset: 0; background: rgba(0,10,40,0.8);
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 15px; z-index: 10; font-family: 'Press Start 2P';
-  }
-
-  .target { position: absolute; font-size: 40px; cursor: pointer; animation: pop 0.4s ease-out; }
-  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-  
-  .floating-text {
-    position: absolute; pointer-events: none; font-weight: 900;
-    animation: floatUp 1s ease-out forwards; z-index: 20;
-  }
-  @keyframes floatUp { 0% { transform: translate(-50%, 0); opacity:1; } 100% { transform: translate(-50%, -60px); opacity:0; } }
+  /* Animaciones de Texto */
+  .floating-text { position: absolute; pointer-events: none; font-weight: 900; animation: floatUp 1s forwards; z-index: 200; }
+  @keyframes floatUp { 0% { transform: translate(-50%, 0); opacity:1; } 100% { transform: translate(-50%, -80px); opacity:0; } }
 </style>
 </head>
 <body>
 
 <div id="modal">
   <div class="card modal-content">
-    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent);">REGISTRO CANINO</h2>
-    <input id="inputName" placeholder="Nombre del perrito..." maxlength="12" />
+    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent)">NUEVA MASCOTA</h2>
+    <input id="inputName" placeholder="Nombre..." maxlength="10">
     <select id="selectBreed">
         <option value="yorkie">Yorkshire Terrier</option>
         <option value="husky" selected>Husky Siberiano</option>
-        <option value="poodle">Caniche (Poodle)</option>
+        <option value="poodle">Poodle (Caniche)</option>
         <option value="bulldog">Bulldog Inglés</option>
         <option value="labrador">Labrador Retriever</option>
     </select>
-    <button id="btnAdopt" class="primary" style="width:100%; margin-top:10px;">COMENZAR</button>
+    <button onclick="initPet()" class="primary" style="width:100%">INICIALIZAR</button>
   </div>
 </div>
 
 <div id="app">
   <div id="left" class="card">
-    <div id="sleepOverlay">
-        <div style="font-size: 20px; color: #fff; margin-bottom: 20px;">Zzz...</div>
-        <div id="sleepTimer" style="font-size: 14px; color: var(--accent);">10s</div>
+    <div id="sleepOverlay" class="overlay">
+        <div style="font-size:24px; margin-bottom:15px;">Zzz...</div>
+        <div id="sleepTimer" style="font-size:14px; color:var(--accent)">10s</div>
     </div>
-    <div style="display:flex; justify-content: space-between; width:100%; align-items:center;">
-      <span id="lvBadge">LV 1</span>
-      <div id="petDisplayName" style="font-weight:900; font-size:20px; color:var(--accent)">-</div>
-    </div>
-    <canvas id="world" width="160" height="160"></canvas>
     
-    <div class="label-row" style="width:100%"><span style="color:var(--xp)">XP</span><span id="valXP">0%</span></div>
-    <div class="bar-bg" style="width:100%"><div id="barXP" class="bar-fill" style="width:0%; background:var(--xp)"></div></div>
+    <div style="display:flex; justify-content: space-between; align-items:center; width:100%;">
+      <span id="lvBadge">LV 1</span>
+      <div id="petNameDisplay" style="font-weight:900; font-size:22px; color:var(--accent); letter-spacing:1px;">---</div>
+    </div>
+
+    <canvas id="world" width="160" height="160"></canvas>
+
+    <div style="width:100%">
+        <div class="label-row"><span style="color:var(--xp)">XP Experiencia</span><span id="valXP">0%</span></div>
+        <div class="bar-bg"><div id="barXP" class="bar-fill" style="width:0%; background:var(--xp)"></div></div>
+    </div>
 
     <div class="grid-btns" style="width:100%">
         <button onclick="handleAction('feed')" class="action-btn primary">🍖 Comer</button>
         <button onclick="handleAction('play')" class="action-btn primary">🎾 Jugar</button>
         <button onclick="handleAction('sleep')" class="action-btn warn">😴 Dormir</button>
-        <button onclick="handleAction('clean')" class="action-btn success">🧼 Limpiar</button>
-        <button onclick="startMinigame()" class="action-btn">🎮 Minijuego</button>
-        <button onclick="openBreedModal()" class="action-btn ghost">🔁 Raza</button>
+        <button onclick="handleAction('clean')" class="action-btn">🧼 Limpiar</button>
     </div>
   </div>
 
   <div id="ui" class="card">
-    <h2 id="statusTitle" style="margin-top:0;">😊 Estado: Feliz</h2>
-    
-    <div class="stat-group"><div class="label-row"><span>Energía</span><span id="valEnergy">100</span></div><div class="bar-bg"><div id="barEnergy" class="bar-fill" style="width:100%; background:#38bdf8"></div></div></div>
-    <div class="stat-group"><div class="label-row"><span>Hambre</span><span id="valHunger">100</span></div><div class="bar-bg"><div id="barHunger" class="bar-fill" style="width:100%; background:#fb7185"></div></div></div>
-    <div class="stat-group"><div class="label-row"><span>Felicidad</span><span id="valHappy">100</span></div><div class="bar-bg"><div id="barHappy" class="bar-fill" style="width:100%; background:#fbbf24"></div></div></div>
-    <div class="stat-group"><div class="label-row"><span>Limpieza</span><span id="valClean">100</span></div><div class="bar-bg"><div id="barClean" class="bar-fill" style="width:100%; background:var(--clean)"></div></div></div>
-
-    <div id="minigameArea" class="card" style="margin-top:15px; min-height:160px; border-style:dashed;">
-        <p id="mgText" style="text-align:center; color:var(--muted); font-size:13px; padding-top:40px;">Minijuego: ¡Atrapa los rayos! ⚡<br>(Gasta 20 de Energía)</p>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="statusTitle" style="margin:0; font-size:18px;">😊 Estado: Feliz</h2>
+        <button onclick="openBreedModal()" style="padding:5px 10px; font-size:10px;" class="action-btn">🔁 Cambiar Raza</button>
     </div>
+
+    <div style="margin-top:15px;">
+        <div class="stat-group">
+            <div class="label-row"><span>Energía</span><span id="vEnergy">100</span></div>
+            <div class="bar-bg"><div id="bEnergy" class="bar-fill" style="width:100%; background:#38bdf8"></div></div>
+        </div>
+        <div class="stat-group">
+            <div class="label-row"><span>Hambre</span><span id="vHunger">100</span></div>
+            <div class="bar-bg"><div id="bHunger" class="bar-fill" style="width:100%; background:#fb7185"></div></div>
+        </div>
+        <div class="stat-group">
+            <div class="label-row"><span>Felicidad</span><span id="vHappy">100</span></div>
+            <div class="bar-bg"><div id="bHappy" class="bar-fill" style="width:100%; background:#fbbf24"></div></div>
+        </div>
+        <div class="stat-group">
+            <div class="label-row"><span>Limpieza</span><span id="vClean">100</span></div>
+            <div class="bar-bg"><div id="bClean" class="bar-fill" style="width:100%; background:var(--clean)"></div></div>
+        </div>
+    </div>
+
+    <div id="minigameArea">
+        </div>
   </div>
 </div>
 
 <script>
 const state = {
-    breed: 'husky',
-    name: 'DOGGO',
+    name: 'DOGGO', breed: 'husky',
     hunger: 100, happy: 100, energy: 100, clean: 100,
     lv: 1, xp: 0,
-    isSleeping: false,
-    tick: 0, frame: 0
+    anim: 'idle', tick: 0, frame: 0,
+    isLocked: false
 }
 
 const canvas = document.getElementById('world');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-/* --- DIBUJO DE RAZAS (Pixel Art Mejorado) --- */
-function drawPet(ctx, x, y, frame) {
-    const isBlink = frame === 1 || state.isSleeping;
-    const bounce = state.isSleeping ? Math.sin(state.tick * 0.05) * 2 : (frame === 2 ? -3 : 0);
+/* --- MINIJUEGOS DATA --- */
+const breedGames = {
+    yorkie: [
+        { n: "🎾 Catch Ball", type: "catch", item: "🎾" },
+        { n: "🧠 Huellas", type: "memory" },
+        { n: "🦴 Timing Galleta", type: "timing" }
+    ],
+    husky: [
+        { n: "❄️ Nieve", type: "catch", item: "❄️" },
+        { n: "🧊 Hielo", type: "timing" },
+        { n: "🐾 Memoria", type: "memory" }
+    ],
+    poodle: [
+        { n: "🧼 Burbujas", type: "catch", item: "🧼" },
+        { n: "👗 Pasarela", type: "memory" },
+        { n: "🎵 Ritmo", type: "timing" }
+    ],
+    bulldog: [
+        { n: "🧶 Tira Cuerda", type: "click" },
+        { n: "🍗 Mordida", type: "timing" },
+        { n: "🔎 Busca Hueso", type: "memory" }
+    ],
+    labrador: [
+        { n: "🌊 Sprint", type: "click" },
+        { n: "🐕 Secuencia", type: "memory" },
+        { n: "🌳 Parque", type: "catch", item: "🌳" }
+    ]
+};
+
+/* --- DIBUJO --- */
+function drawPet() {
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,160,160); // Fondo
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(0,110,160,50); // Suelo
+
+    const x = 45, y = 65;
+    let bounce = 0;
+    let isBlink = state.frame === 1 || state.anim === 'sleep';
+
+    // Animación de Salto (Jugar)
+    if(state.anim === 'play') {
+        bounce = -Math.abs(Math.sin(state.tick * 0.2) * 25);
+    }
+    // Animación de Respiración/Idle
+    else if(state.anim === 'idle') {
+        bounce = Math.sin(state.tick * 0.1) * 2;
+    }
+    // Animación de Comer
+    else if(state.anim === 'eat') {
+        bounce = (state.tick % 20 < 10) ? 4 : 0;
+        ctx.fillStyle = '#7c2d12'; // Cuenco
+        ctx.beginPath(); ctx.ellipse(x+60, y+45, 12, 6, 0, 0, Math.PI*2); ctx.fill();
+    }
 
     ctx.save();
     ctx.translate(x, y + bounce);
 
-    // Sombras y Suelo Sucio
+    // Sombra
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.beginPath(); ctx.ellipse(40, 65, 25, 6, 0, 0, Math.PI*2); ctx.fill();
-    if(state.clean < 40) { // Dibujar suciedad
-        ctx.fillStyle = '#5a3826'; ctx.fillRect(60, 60, 6, 4); ctx.fillRect(-10, 55, 4, 3);
-    }
+    ctx.beginPath(); ctx.ellipse(30, 45, 25, 5, 0, 0, Math.PI*2); ctx.fill();
 
+    // Dibujo por Raza
     switch(state.breed) {
         case 'yorkie':
-            ctx.fillStyle = '#78350f'; ctx.fillRect(10, 30, 55, 35); // Cuerpo
-            ctx.fillStyle = '#fbbf24'; ctx.fillRect(10, 30, 55, 15); // Pelo largo
-            ctx.fillStyle = '#b45309'; ctx.fillRect(5, 5, 35, 30); // Cabeza
-            ctx.fillStyle = '#000'; ctx.fillRect(12, 15, 5, isBlink ? 1 : 5); ctx.fillRect(28, 15, 5, isBlink ? 1 : 5);
+            ctx.fillStyle = '#b45309'; ctx.fillRect(0, 10, 50, 35); // Cuerpo
+            ctx.fillStyle = '#fbbf24'; ctx.fillRect(0, 10, 50, 10); // Pelo
+            ctx.fillStyle = '#78350f'; ctx.fillRect(-5, -5, 25, 25); // Cabeza
             break;
         case 'husky':
-            ctx.fillStyle = '#475569'; ctx.fillRect(10, 30, 60, 35); // Cuerpo
-            ctx.fillStyle = '#f8fafc'; ctx.fillRect(10, 42, 35, 23); // Pecho
-            ctx.fillStyle = '#64748b'; ctx.fillRect(5, 5, 35, 30); // Cabeza
-            ctx.fillStyle = isBlink ? '#334155' : '#00f2ff';
-            ctx.fillRect(12, 12, 6, isBlink ? 2 : 6); ctx.fillRect(28, 12, 6, isBlink ? 2 : 6);
+            ctx.fillStyle = '#475569'; ctx.fillRect(0, 10, 55, 35); // Cuerpo
+            ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 20, 25, 25); // Pecho
+            ctx.fillStyle = '#64748b'; ctx.fillRect(-5, -10, 30, 30); // Cabeza
             break;
         case 'poodle':
-            ctx.fillStyle = '#fdf4ff'; ctx.fillRect(15, 30, 50, 35); // Cuerpo
-            ctx.fillStyle = '#fae8ff'; ctx.fillRect(5, 0, 40, 35); // Cabeza pomposa
-            ctx.fillStyle = '#000'; ctx.fillRect(15, 18, 4, isBlink ? 1 : 4); ctx.fillRect(32, 18, 4, isBlink ? 1 : 4);
-            ctx.fillStyle = '#f0abfc'; ctx.fillRect(0, 5, 10, 25); ctx.fillRect(40, 5, 10, 25); // Orejas
+            ctx.fillStyle = '#fdf4ff'; ctx.fillRect(0, 10, 45, 35); // Cuerpo
+            ctx.fillStyle = '#fae8ff'; ctx.beginPath(); ctx.arc(10, 0, 18, 0, Math.PI*2); ctx.fill(); // Cabeza
             break;
         case 'bulldog':
-            ctx.fillStyle = '#a67c52'; ctx.fillRect(5, 35, 70, 30); // Cuerpo ancho
-            ctx.fillStyle = '#d97706'; ctx.fillRect(10, 10, 50, 35); // Cabeza plana
-            ctx.fillStyle = '#000'; ctx.fillRect(25, 22, 6, isBlink ? 1 : 6); ctx.fillRect(45, 22, 6, isBlink ? 1 : 6);
-            ctx.fillStyle = '#451a03'; ctx.fillRect(30, 35, 15, 5); // Hocico ancho
+            ctx.fillStyle = '#a67c52'; ctx.fillRect(0, 15, 60, 30); // Cuerpo
+            ctx.fillStyle = '#d97706'; ctx.fillRect(-5, 0, 40, 35); // Cabeza
             break;
         case 'labrador':
-            ctx.fillStyle = '#fde047'; ctx.fillRect(10, 30, 65, 35); // Cuerpo
-            ctx.fillStyle = '#eab308'; ctx.fillRect(10, 10, 45, 30); // Cabeza
-            ctx.fillStyle = '#713f12'; ctx.fillRect(5, 12, 10, 20); ctx.fillRect(45, 12, 10, 20); // Orejas caídas
-            ctx.fillStyle = '#000'; ctx.fillRect(20, 18, 5, isBlink ? 1 : 5); ctx.fillRect(38, 18, 5, isBlink ? 1 : 5);
+            ctx.fillStyle = '#fde047'; ctx.fillRect(0, 10, 60, 35);
+            ctx.fillStyle = '#eab308'; ctx.fillRect(-5, -5, 35, 30);
             break;
     }
 
-    if(state.isSleeping && state.tick % 40 < 20) {
-        ctx.fillStyle = "#fff"; ctx.font = "bold 12px Arial"; ctx.fillText("Zzz", 50, 0);
-    }
+    // Ojos
+    ctx.fillStyle = isBlink ? '#2d3748' : (state.breed === 'husky' ? '#00f2ff' : '#000');
+    ctx.fillRect(5, 5, 5, isBlink ? 1 : 5);
+    ctx.fillRect(20, 5, 5, isBlink ? 1 : 5);
+
     ctx.restore();
 }
 
-/* --- LÓGICA DE ACCIONES --- */
+/* --- ACCIONES --- */
 function handleAction(type) {
-    if(state.isSleeping) return;
+    if(state.isLocked) return;
 
     switch(type) {
         case 'feed':
-            state.hunger = Math.min(100, state.hunger + 25);
+            state.anim = 'eat';
+            state.hunger = Math.min(100, state.hunger + 20);
             state.clean = Math.max(0, state.clean - 5);
-            addXP(5); spawnText("+25 Hambre", "#10b981");
+            lockAndReset(1500, "+20 Nutrición");
             break;
         case 'play':
             if(state.energy < 20) return spawnText("¡Cansado!", "#f43f5e");
-            state.happy = Math.min(100, state.happy + 30);
-            state.energy -= 20;
-            addXP(15); spawnText("+30 Diversión", "#fbbf24");
-            break;
-        case 'clean':
-            state.clean = 100;
-            state.happy = Math.min(100, state.happy + 10);
-            spawnText("¡Limpio!", "#10b981");
+            state.anim = 'play';
+            state.happy = Math.min(100, state.happy + 25);
+            state.energy -= 15;
+            lockAndReset(2000, "+25 Diversión");
             break;
         case 'sleep':
             startSleep();
             break;
+        case 'clean':
+            state.clean = 100;
+            state.happy = Math.min(100, state.happy + 10);
+            spawnText("¡Reluciente!", "#10b981");
+            break;
     }
-    updateUI();
+}
+
+function lockAndReset(ms, txt) {
+    state.isLocked = true;
+    spawnText(txt, "#fff");
+    addXP(10);
+    setTimeout(() => { 
+        state.isLocked = false; 
+        state.anim = 'idle'; 
+    }, ms);
 }
 
 function startSleep() {
-    state.isSleeping = true;
+    state.isLocked = true;
+    state.anim = 'sleep';
     const overlay = document.getElementById('sleepOverlay');
-    const timerEl = document.getElementById('sleepTimer');
     overlay.style.display = 'flex';
-    document.querySelectorAll('.action-btn').forEach(b => b.disabled = true);
     
     let time = 10;
     const itv = setInterval(() => {
         time--;
-        timerEl.innerText = time + 's';
+        document.getElementById('sleepTimer').innerText = time + 's';
         if(time <= 0) {
             clearInterval(itv);
-            state.isSleeping = false;
+            state.isLocked = false;
+            state.anim = 'idle';
             state.energy = 100;
             overlay.style.display = 'none';
-            document.querySelectorAll('.action-btn').forEach(b => b.disabled = false);
-            spawnText("Energía al Máximo", "#00f2ff");
+            spawnText("Energía FULL", "#00f2ff");
         }
     }, 1000);
 }
 
-function startMinigame() {
-    if(state.isSleeping || state.energy < 20) return spawnText("Baja Energía", "#f43f5e");
-    
-    state.energy -= 20;
+/* --- MOTOR DE MINIJUEGOS --- */
+function loadMinigames() {
     const area = document.getElementById('minigameArea');
-    area.innerHTML = '';
-    let hits = 0; let duration = 8;
+    area.innerHTML = '<h3 style="font-size:12px; margin-bottom:10px;">Minijuegos de Raza</h3>';
+    const games = breedGames[state.breed];
     
-    const gameItv = setInterval(() => {
-        if(duration <= 0) {
-            clearInterval(gameItv);
-            area.innerHTML = `<p style="text-align:center">¡FIN!<br>Atrapados: ${hits}<br>+${hits*8} XP</p>`;
-            addXP(hits * 8);
-            setTimeout(() => { area.innerHTML = '<p style="text-align:center; color:var(--muted); padding-top:40px;">Minijuego: ¡Atrapa los rayos! ⚡</p>'; }, 3000);
-            return;
-        }
-        const t = document.createElement('div');
-        t.className = 'target'; t.innerText = '⚡';
-        t.style.left = Math.random() * 80 + '%'; t.style.top = Math.random() * 60 + '%';
-        t.onclick = () => { hits++; t.remove(); spawnText("¡HIT!", "#fbbf24"); };
-        area.appendChild(t);
-        setTimeout(() => t.remove(), 700);
-        duration -= 0.5;
-    }, 600);
+    games.forEach(g => {
+        const b = document.createElement('button');
+        b.className = 'mg-btn';
+        b.innerText = g.n;
+        b.onclick = () => runGame(g);
+        area.appendChild(b);
+    });
 }
 
-/* --- MOTOR Y UI --- */
-function updateUI() {
-    document.getElementById('barHunger').style.width = state.hunger + '%';
-    document.getElementById('barHappy').style.width = state.happy + '%';
-    document.getElementById('barEnergy').style.width = state.energy + '%';
-    document.getElementById('barClean').style.width = state.clean + '%';
-    document.getElementById('barXP').style.width = state.xp + '%';
-    document.getElementById('valHunger').innerText = Math.round(state.hunger);
-    document.getElementById('valHappy').innerText = Math.round(state.happy);
-    document.getElementById('valEnergy').innerText = Math.round(state.energy);
-    document.getElementById('valClean').innerText = Math.round(state.clean);
-    document.getElementById('valXP').innerText = state.xp + '%';
-    document.getElementById('lvBadge').innerText = 'LV ' + state.lv;
-    document.getElementById('petDisplayName').innerText = state.name.toUpperCase();
+function runGame(config) {
+    if(state.isLocked || state.energy < 15) return spawnText("Baja Energía", "#f43f5e");
+    
+    state.isLocked = true;
+    state.energy -= 15;
+    const area = document.getElementById('minigameArea');
+    area.innerHTML = '<div id="gameCanvas" style="width:100%; height:100%; position:relative;"></div>';
+    const gameBox = document.getElementById('gameCanvas');
+    
+    let score = 0;
+    
+    if(config.type === 'catch') {
+        let time = 8;
+        const itv = setInterval(() => {
+            if(time <= 0) { endGame(itv, score); return; }
+            const obj = document.createElement('div');
+            obj.innerText = config.item;
+            obj.style.position = 'absolute';
+            obj.style.cursor = 'pointer';
+            obj.style.fontSize = '24px';
+            obj.style.left = Math.random()*80 + '%';
+            obj.style.top = Math.random()*70 + '%';
+            obj.onclick = () => { score++; obj.remove(); };
+            gameBox.appendChild(obj);
+            setTimeout(() => obj.remove(), 800);
+            time -= 0.5;
+        }, 600);
+    } 
+    else if(config.type === 'click') {
+        gameBox.innerHTML = `<p style="font-size:10px">¡CLICK RÁPIDO!</p><button id="clickMe" style="font-size:24px; padding:20px;">🐾</button>`;
+        const btn = document.getElementById('clickMe');
+        btn.onclick = () => score++;
+        setTimeout(() => endGame(null, score), 5000);
+    }
+    else {
+        // Simple fallback para timing/memory para no saturar el código
+        gameBox.innerHTML = `<p style="font-size:10px">Entrenando...</p>`;
+        setTimeout(() => endGame(null, 5), 3000);
+    }
 }
 
-function addXP(v) {
-    state.xp += v;
-    if(state.xp >= 100) { state.lv++; state.xp = 0; spawnText("¡LEVEL UP!", "#8b5cf6"); }
+function endGame(itv, score) {
+    if(itv) clearInterval(itv);
+    const area = document.getElementById('minigameArea');
+    const reward = score * 5;
+    area.innerHTML = `<p style="text-align:center">¡Bien hecho!<br>+${reward} XP<br>+${score * 2} Felicidad</p>`;
+    addXP(reward);
+    state.happy = Math.min(100, state.happy + (score * 2));
+    setTimeout(() => {
+        state.isLocked = false;
+        loadMinigames();
+    }, 3000);
 }
 
-function spawnText(t, c) {
-    const el = document.createElement('div'); el.className = 'floating-text';
-    el.innerText = t; el.style.color = c; el.style.left = '50%'; el.style.top = '40%';
-    document.getElementById('left').appendChild(el);
-    setTimeout(() => el.remove(), 1000);
+/* --- SISTEMA CORE --- */
+function initPet() {
+    state.name = document.getElementById('inputName').value || 'DOGGO';
+    state.breed = document.getElementById('selectBreed').value;
+    document.getElementById('petNameDisplay').innerText = state.name.toUpperCase();
+    document.getElementById('modal').style.display = 'none';
+    loadMinigames();
+    loop();
 }
 
 function openBreedModal() { document.getElementById('modal').style.display = 'flex'; }
 
-document.getElementById('btnAdopt').onclick = () => {
-    state.name = document.getElementById('inputName').value || 'DOGGO';
-    state.breed = document.getElementById('selectBreed').value;
-    document.getElementById('modal').style.display = 'none';
-    updateUI();
-};
+function addXP(val) {
+    state.xp += val;
+    if(state.xp >= 100) {
+        state.lv++; state.xp = 0;
+        spawnText("LEVEL UP!", "#8b5cf6");
+    }
+}
+
+function spawnText(txt, color) {
+    const el = document.createElement('div');
+    el.className = 'floating-text';
+    el.innerText = txt; el.style.color = color;
+    el.style.left = '50%'; el.style.top = '40%';
+    document.getElementById('left').appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+}
+
+function updateUI() {
+    document.getElementById('bEnergy').style.width = state.energy + '%';
+    document.getElementById('bHunger').style.width = state.hunger + '%';
+    document.getElementById('bHappy').style.width = state.happy + '%';
+    document.getElementById('bClean').style.width = state.clean + '%';
+    document.getElementById('barXP').style.width = state.xp + '%';
+    
+    document.getElementById('vEnergy').innerText = Math.round(state.energy);
+    document.getElementById('vHunger').innerText = Math.round(state.hunger);
+    document.getElementById('vHappy').innerText = Math.round(state.happy);
+    document.getElementById('vClean').innerText = Math.round(state.clean);
+    document.getElementById('valXP').innerText = state.xp + '%';
+    document.getElementById('lvBadge').innerText = 'LV ' + state.lv;
+
+    const st = document.getElementById('statusTitle');
+    if(state.happy > 70) st.innerText = "😊 Estado: Feliz";
+    else if(state.happy > 30) st.innerText = "😐 Estado: Aburrido";
+    else st.innerText = "😢 Estado: Triste";
+}
 
 function loop() {
     state.tick++;
-    if(state.tick % 25 === 0) state.frame = (state.frame + 1) % 4;
-    
-    // Desgaste natural
-    if(!state.isSleeping) {
-        state.hunger = Math.max(0, state.hunger - 0.03);
-        state.happy = Math.max(0, state.happy - 0.02);
-        state.clean = Math.max(0, state.clean - 0.015);
+    if(state.tick % 20 === 0) state.frame = (state.frame + 1) % 4;
+
+    // Desgaste
+    if(!state.isLocked) {
+        state.hunger = Math.max(0, state.hunger - 0.02);
+        state.happy = Math.max(0, state.happy - 0.015);
+        state.energy = Math.max(0, state.energy - 0.01);
+        state.clean = Math.max(0, state.clean - 0.01);
     }
 
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,160,160); // Pared
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(0,100,160,60); // Suelo
-    drawPet(ctx, 45, 60, state.frame);
+    drawPet();
     updateUI();
     requestAnimationFrame(loop);
 }
-
-loop();
 </script>
 </body>
 </html>
