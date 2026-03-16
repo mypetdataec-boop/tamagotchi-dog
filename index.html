@@ -79,7 +79,6 @@
       <option value="bg_dark">🌙 Habitación Oscura</option>
     </select>
     <button onclick="startGame()" class="btn-accent" style="width:100%; margin-top:20px;">CONFIRMAR</button>
-    <button onclick="resetEverything()" style="width:100%; margin-top:10px; background:#ef444422; color:var(--danger); border:1px solid var(--danger); font-size:8px;">BORRAR PARTIDA ACTUAL</button>
   </div>
 </div>
 
@@ -109,6 +108,7 @@
     </select>
     <button onclick="saveOptions()" class="btn-accent" style="width:100%; margin-top:20px;">GUARDAR CAMBIOS</button>
     <button onclick="closeModals()" style="width:100%; margin-top:10px; background:transparent; border:1px solid #374151;">CANCELAR</button>
+    <button onclick="resetEverything()" style="width:100%; margin-top:20px; background:#ef444422; color:var(--danger); border:1px solid var(--danger); font-size:10px;">⚠️ BORRAR PARTIDA ACTUAL</button>
   </div>
 </div>
 
@@ -266,12 +266,12 @@ function loadGame() {
 }
 
 function resetEverything() {
-    if(confirm("¿Seguro que quieres borrar toda tu mascota actual? Perderás tus niveles y monedas.")) {
+    if(confirm("¿Seguro que quieres borrar toda tu mascota actual? Perderás tus niveles, edad y monedas.")) {
         localStorage.removeItem(SAVE_KEY); location.reload();
     }
 }
 
-// --- DIBUJO PIXEL ART (ACTUALIZADO PARA ITEMS DINÁMICOS Y ETAPAS) ---
+// --- DIBUJO PIXEL ART ---
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
