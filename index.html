@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Evolución Total (25 Razas + Tienda)</title>
+<title>NeoPixel Pet: Evolución Total (25 Razas + Tienda + Muerte)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -53,6 +53,15 @@
 <body>
 
 <div id="saveMsg" class="save-notify">💾 PROGRESO GUARDADO</div>
+
+<div id="gameOverModal" class="modal-bg" style="background: rgba(80, 0, 0, 0.95); z-index: 3000;">
+  <div class="card" style="width: 450px; text-align: center; border: 2px solid var(--danger); box-shadow: 0 0 50px rgba(239, 68, 68, 0.5);">
+    <h2 style="font-family:'Press Start 2P'; font-size:20px; color:var(--danger); margin-bottom:15px; text-shadow: 2px 2px 0px #000;">☠️ GAME OVER</h2>
+    <p style="font-size:14px; color:#d1d5db; margin-bottom:10px;">Tu mascota estuvo enferma mucho tiempo y no logró sobrevivir...</p>
+    <p style="font-size:12px; color:#9ca3af; margin-bottom:25px;">Todo el progreso se ha perdido.</p>
+    <button onclick="resetEverything()" class="btn-sick" style="width:100%; font-size:14px; padding:20px;">ADOPTAR NUEVA MASCOTA</button>
+  </div>
+</div>
 
 <div id="modal" class="modal-bg">
   <div class="card" style="width: 400px; text-align: center;">
@@ -118,8 +127,7 @@
     <p style="text-align:center; font-size:10px; color:#22c55e; margin-bottom:15px;">¡Juega minijuegos para ganar más monedas!</p>
     <p style="text-align:center; font-size:12px; color:#9ca3af; margin-bottom:15px;">Tus Monedas: <strong id="shopCoins" style="color:var(--coins);">0</strong></p>
     
-    <div id="shopListContainer" class="shop-list">
-        </div>
+    <div id="shopListContainer" class="shop-list"></div>
 
     <button onclick="closeModals()" style="width:100%; margin-top:10px; border:1px solid #374151;">CERRAR</button>
   </div>
@@ -190,12 +198,12 @@
 
 <script>
 // --- LÓGICA DE PERSISTENCIA ---
-const SAVE_KEY = 'NEOPIXEL_PET_V5'; 
+const SAVE_KEY = 'NEOPIXEL_PET_V6'; 
 
 const defaultState = {
   name: 'Doggo', breed: 'husky', bg: 'bg_house',
   hunger: 100, energy: 100, clean: 100, xp: 0, lv: 1, coins: 0,
-  sick: false, healthTimer: 100,
+  sick: false, healthTimer: 100, deathTimer: 30, dead: false, // <-- Nuevas variables de muerte
   inventory: [], equipment: { head: null, neck: null },
   anim: 'idle', tick: 0, frame: 0, busy: false
 };
@@ -208,15 +216,12 @@ ctx.imageSmoothingEnabled = false;
 
 // --- LOS 30 ÍTEMS DE LA TIENDA ---
 const shopItemsConfig = [
-    // Sombreros (Hats)
     {id: 'tophat', name: 'Sombrero Copa', desc: 'Elegancia oscura', price: 100, slot: 'head', type: 'hat', c1: '#111827', c2: '#ef4444'},
     {id: 'whitehat', name: 'Sombrero Blanco', desc: 'Puro estilo', price: 120, slot: 'head', type: 'hat', c1: '#f8fafc', c2: '#3b82f6'},
     {id: 'brownhat', name: 'Sombrero Vaquero', desc: 'Yee-haw!', price: 150, slot: 'head', type: 'hat', c1: '#78350f', c2: '#fbbf24'},
     {id: 'magichat', name: 'Sombrero Mágico', desc: 'Abracadabra', price: 200, slot: 'head', type: 'hat', c1: '#4c1d95', c2: '#fbbf24'},
     {id: 'greenhat', name: 'Sombrero Duende', desc: 'Suerte extra', price: 110, slot: 'head', type: 'hat', c1: '#166534', c2: '#fef08a'},
     {id: 'bluehat', name: 'Sombrero Azul', desc: 'Tranquilidad', price: 110, slot: 'head', type: 'hat', c1: '#1e3a8a', c2: '#93c5fd'},
-    
-    // Lazos (Bows)
     {id: 'pinkbow', name: 'Lazo Rosado', desc: 'Muy tierno', price: 75, slot: 'head', type: 'bow', c1: '#ec4899'},
     {id: 'bluebow', name: 'Lazo Azul', desc: 'Elegante', price: 75, slot: 'head', type: 'bow', c1: '#3b82f6'},
     {id: 'redbow', name: 'Lazo Rojo', desc: 'Pasión', price: 75, slot: 'head', type: 'bow', c1: '#ef4444'},
@@ -225,13 +230,9 @@ const shopItemsConfig = [
     {id: 'greenbow', name: 'Lazo Verde', desc: 'Naturaleza', price: 75, slot: 'head', type: 'bow', c1: '#22c55e'},
     {id: 'blackbow', name: 'Lazo Gótico', desc: 'Oscuridad', price: 80, slot: 'head', type: 'bow', c1: '#1f2937'},
     {id: 'whitebow', name: 'Lazo Níveo', desc: 'Paz', price: 80, slot: 'head', type: 'bow', c1: '#f8fafc'},
-
-    // Coronas (Crowns)
     {id: 'goldcrown', name: 'Corona Oro', desc: 'Para reyes', price: 500, slot: 'head', type: 'crown', c1: '#fbbf24'},
     {id: 'silvercrown', name: 'Corona Plata', desc: 'Príncipes', price: 300, slot: 'head', type: 'crown', c1: '#94a3b8'},
     {id: 'bronzecrown', name: 'Corona Bronce', desc: 'Tercer lugar', price: 150, slot: 'head', type: 'crown', c1: '#b45309'},
-
-    // Collares (Collars)
     {id: 'redcollar', name: 'Collar Rojo', desc: 'Clásico seguro', price: 50, slot: 'neck', type: 'collar', c1: '#ef4444', c2: '#fbbf24'},
     {id: 'bluecollar', name: 'Collar Azul', desc: 'Océano', price: 50, slot: 'neck', type: 'collar', c1: '#3b82f6', c2: '#fbbf24'},
     {id: 'greencollar', name: 'Collar Verde', desc: 'Bosque', price: 50, slot: 'neck', type: 'collar', c1: '#22c55e', c2: '#fbbf24'},
@@ -239,8 +240,6 @@ const shopItemsConfig = [
     {id: 'goldcollar', name: 'Collar Rico', desc: 'Puro lujo', price: 200, slot: 'neck', type: 'collar', c1: '#fbbf24', c2: '#fef08a'},
     {id: 'purplecollar', name: 'Collar Real', desc: 'Majestuoso', price: 55, slot: 'neck', type: 'collar', c1: '#a855f7', c2: '#fbbf24'},
     {id: 'pinkcollar', name: 'Collar Fresa', desc: 'Dulce', price: 55, slot: 'neck', type: 'collar', c1: '#ec4899', c2: '#fbbf24'},
-
-    // Bufandas (Scarves)
     {id: 'redscarf', name: 'Bufanda Roja', desc: 'Calientita', price: 90, slot: 'neck', type: 'scarf', c1: '#ef4444'},
     {id: 'bluescarf', name: 'Bufanda Azul', desc: 'Invierno', price: 90, slot: 'neck', type: 'scarf', c1: '#3b82f6'},
     {id: 'greenscarf', name: 'Bufanda Verde', desc: 'Eco-friendly', price: 90, slot: 'neck', type: 'scarf', c1: '#22c55e'},
@@ -250,6 +249,7 @@ const shopItemsConfig = [
 ];
 
 function saveGame() {
+    if(state.dead) return; // No guardamos si está muerto, ya se borró.
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
     const msg = document.getElementById('saveMsg');
     msg.style.opacity = 1; setTimeout(() => msg.style.opacity = 0, 2000);
@@ -259,23 +259,33 @@ function loadGame() {
     const savedData = localStorage.getItem(SAVE_KEY);
     if (savedData) {
         Object.assign(state, JSON.parse(savedData));
+        if(state.deathTimer === undefined) state.deathTimer = 30; // Para partidas antiguas
+        if(state.dead === undefined) state.dead = false;
         state.busy = false; state.anim = 'idle';
-        return true;
+        return !state.dead;
     }
     return false;
 }
 
+function triggerGameOver() {
+    state.dead = true;
+    document.getElementById('gameOverModal').style.display = 'flex';
+    localStorage.removeItem(SAVE_KEY); // Borrar progreso inmediatamente
+}
+
 function resetEverything() {
-    if(confirm("¿Seguro que quieres borrar toda tu mascota actual? Perderás tus niveles, edad y monedas.")) {
-        localStorage.removeItem(SAVE_KEY); location.reload();
+    // Si no estaba muerto y presiona el botón en Opciones
+    if (!state.dead && !confirm("¿Seguro que quieres borrar toda tu mascota actual? Perderás todo el progreso.")) {
+        return;
     }
+    localStorage.removeItem(SAVE_KEY); 
+    location.reload();
 }
 
 // --- DIBUJO PIXEL ART ---
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
-  // Escenarios dinámicos
   const PERSPECTIVE_FLOOR_Y = 200;
   if(state.bg === 'bg_house') {
       ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200);
@@ -292,18 +302,17 @@ function drawPet() {
       ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   }
 
-  // Lógica de Etapas Mejorada
-  let scale = 1.5; // Nivel 1-9 (Cachorro)
-  if (state.lv >= 10 && state.lv < 20) scale = 2; // Nivel 10-19 (Joven)
-  else if (state.lv >= 20) scale = 2.5; // Nivel 20+ (Adulto y Viejito)
+  let scale = 1.5; 
+  if (state.lv >= 10 && state.lv < 20) scale = 2; 
+  else if (state.lv >= 20) scale = 2.5; 
   
   const bx = 125, by = 160; 
 
   const isTired = state.energy < 30;
-  let bounce = Math.floor(Math.sin(state.tick * (isTired || state.sick ? 0.05 : 0.15)) * 3);
-  if (state.anim === 'play') bounce = -Math.abs(Math.floor(Math.sin(state.tick * 0.3) * 15));
+  let bounce = Math.floor(Math.sin(state.tick * (isTired || state.sick || state.dead ? 0.05 : 0.15)) * 3);
+  if (state.anim === 'play' && !state.dead) bounce = -Math.abs(Math.floor(Math.sin(state.tick * 0.3) * 15));
+  if (state.dead) bounce = 5; // Tumbado
 
-  // Paleta de colores 
   const colors = {
     husky: ['#64748b', '#f8fafc', '#22d3ee'], beagle: ['#b45309', '#ffffff', '#000'],
     pug: ['#d4d4d8', '#000000', '#000'], poodle: ['#fdf4ff', '#f0abfc', '#000'],
@@ -326,7 +335,9 @@ function drawPet() {
   ctx.save();
   ctx.translate(bx, by + bounce);
   
-  if (state.sick) ctx.filter = 'sepia(0.8) hue-rotate(90deg) brightness(0.7)'; 
+  // Filtro visual si está enfermo o muerto
+  if (state.dead) ctx.filter = 'grayscale(1) brightness(0.5)';
+  else if (state.sick) ctx.filter = 'sepia(0.8) hue-rotate(90deg) brightness(0.7)'; 
   else if (state.clean < 40) ctx.filter = 'sepia(0.6) brightness(0.8)'; 
 
   ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-10 * scale, 12 * scale, 25 * scale, 4 * scale);
@@ -335,7 +346,7 @@ function drawPet() {
   ctx.fillRect(-4 * scale, 10 * scale, 4 * scale, 6 * scale); 
   ctx.fillRect(8 * scale, 10 * scale, 4 * scale, 6 * scale); 
 
-  let tailWag = Math.floor(Math.sin(state.tick * 0.5) * 2);
+  let tailWag = state.dead ? 0 : Math.floor(Math.sin(state.tick * 0.5) * 2);
   ctx.fillRect(-12 * scale, 2 * scale + tailWag, 6 * scale, 4 * scale);
 
   ctx.fillRect(-8 * scale, 0, 20 * scale, 12 * scale);
@@ -343,7 +354,8 @@ function drawPet() {
   ctx.fillRect(-2 * scale, 8 * scale, 12 * scale, 4 * scale);
 
   ctx.save();
-  let headY = (state.anim === 'feed' && state.tick % 10 < 5) ? 3 * scale : 0;
+  let headY = (state.anim === 'feed' && state.tick % 10 < 5 && !state.dead) ? 3 * scale : 0;
+  if (state.dead) headY = 4 * scale; // Cabeza gacha si está muerto
   ctx.translate(6 * scale, -10 * scale + headY);
   
   ctx.fillStyle = colors[0]; ctx.fillRect(0, 0, 14 * scale, 12 * scale);
@@ -354,7 +366,12 @@ function drawPet() {
   if (hasFloppyEars) ctx.fillRect(2 * scale, 4 * scale, 4 * scale, 8 * scale);
   else ctx.fillRect(2 * scale, -4 * scale, 4 * scale, 6 * scale);
 
-  if (state.anim === 'sleep' || isTired || state.sick) {
+  // Ojos (Animación de estar dormido/cansado/enfermo/muerto)
+  if (state.dead) {
+      // Ojos con una cruz si está muerto
+      ctx.fillStyle = '#000';
+      ctx.fillRect(8 * scale, 2 * scale, 4 * scale, 4 * scale);
+  } else if (state.anim === 'sleep' || isTired || state.sick) {
       ctx.fillStyle = '#000'; ctx.fillRect(8 * scale, 4 * scale, 4 * scale, 1 * scale);
   } else {
       ctx.fillStyle = '#fff'; ctx.fillRect(8 * scale, 2 * scale, 4 * scale, 4 * scale);
@@ -366,14 +383,12 @@ function drawPet() {
       }
   }
 
-  // Viejito details (Nivel 50+)
   if (state.lv >= 50) {
-      ctx.fillStyle = '#d1d5db'; // Pelaje grisoso
-      ctx.fillRect(8 * scale, 1 * scale, 4 * scale, 1 * scale); // Cejas canosas
-      ctx.fillRect(10 * scale, 8 * scale, 4 * scale, 3 * scale); // Barbita canosa
+      ctx.fillStyle = '#d1d5db'; 
+      ctx.fillRect(8 * scale, 1 * scale, 4 * scale, 1 * scale); 
+      ctx.fillRect(10 * scale, 8 * scale, 4 * scale, 3 * scale); 
   }
 
-  // DIBUJAR EQUIPAMIENTO DE CABEZA DINÁMICO
   const eqHead = shopItemsConfig.find(i => i.id === state.equipment.head);
   if (eqHead) {
       if (eqHead.type === 'hat') {
@@ -393,7 +408,6 @@ function drawPet() {
   }
   ctx.restore(); 
 
-  // DIBUJAR EQUIPAMIENTO DE CUELLO DINÁMICO
   const eqNeck = shopItemsConfig.find(i => i.id === state.equipment.neck);
   if (eqNeck) {
       if (eqNeck.type === 'collar') {
@@ -405,12 +419,12 @@ function drawPet() {
       }
   }
 
-  if (state.anim === 'feed') { 
+  if (state.anim === 'feed' && !state.dead) { 
       ctx.fillStyle = '#451a03'; ctx.fillRect(20 * scale, 10 * scale, 12 * scale, 4 * scale); 
       ctx.fillStyle = '#fbbf24'; ctx.fillRect(21 * scale, 8 * scale, 10 * scale, 2 * scale); 
   }
 
-  if(state.sick) {
+  if(state.sick && !state.dead) {
       ctx.fillStyle = '#fff'; ctx.fillRect(25 * scale, -15 * scale, 3 * scale, 15 * scale);
       ctx.fillStyle = '#ef4444'; ctx.fillRect(25 * scale, -5 * scale, 3 * scale, 5 * scale);
   }
@@ -420,10 +434,10 @@ function drawPet() {
 }
 
 const gamesConfig = {
-    husky: [ {n: "❄️ Pesca Hielo", t: "catch", i: "🐟"}, {n: "🛷 Carrera", t: "click", i: "🐾"}, {n: "🌬️ Ventisca", t: "timing"} ],
+    husky: [ {n: "❄️ Pesca", t: "catch", i: "🐟"}, {n: "🛷 Carrera", t: "click", i: "🐾"}, {n: "🌬️ Ventisca", t: "timing"} ],
     beagle: [ {n: "🦊 Rastro", t: "catch", i: "🦊"}, {n: "🐰 Liebre", t: "timing"}, {n: "🌳 Aullido", t: "click", i: "🎵"} ],
     pug: [ {n: "🍕 Pizza", t: "catch", i: "🍕"}, {n: "💤 Ronquido", t: "timing"}, {n: "📸 Selfie", t: "click", i: "📸"} ],
-    poodle: [ {n: "🫧 Burbujas", t: "catch", i: "🫧"}, {n: "🐩 Desfile", t: "timing"}, {n: "✨ Peluquería", t: "click", i: "✨"} ],
+    poodle: [ {n: "🫧 Burbujas", t: "catch", i: "🫧"}, {n: "🐩 Desfile", t: "timing"}, {n: "✨ Pelo", t: "click", i: "✨"} ],
     doberman: [ {n: "🛡️ Guardia", t: "timing"}, {n: "🏃 Sprint", t: "click", i: "🐾"}, {n: "🦴 Hueso", t: "catch", i: "🦴"} ],
     labrador: [ {n: "🌊 Buceo", t: "catch", i: "🎾"}, {n: "🦆 Pato", t: "timing"}, {n: "🐕‍🦺 Guía", t: "click", i: "⚡"} ],
     yorkie: [ {n: "🎀 Lazos", t: "catch", i: "🎀"}, {n: "🎾 Saltos", t: "timing"}, {n: "🍪 Galletas", t: "click", i: "🍪"} ],
@@ -448,15 +462,15 @@ const gamesConfig = {
 };
 
 function performAction(type) {
-    if(state.busy) return;
+    if(state.busy || state.dead) return;
     state.busy = true;
     
     if(type === 'heal') {
         if(!state.sick || state.coins < 10) { state.busy = false; return; }
-        state.coins -= 10; state.sick = false; state.healthTimer = 100; state.clean = 100;
+        state.coins -= 10; state.sick = false; state.healthTimer = 100; state.deathTimer = 30; state.clean = 100;
         state.busy = false; addXP(5); saveGame();
     } else if(state.sick) {
-        alert("¡Tu mascota está muy enferma para hacer eso! Necesita medicina.");
+        alert("¡Tu mascota está muy enferma para hacer eso! Necesita medicina urgente.");
         state.busy = false; return;
     } else if(type === 'feed') {
         state.anim = 'feed'; state.hunger = Math.min(100, state.hunger + 30); state.clean -= 15;
@@ -478,7 +492,7 @@ function performAction(type) {
 
 let isAnimatingXP = false;
 function addXP(v) {
-    if (isAnimatingXP) return;
+    if (isAnimatingXP || state.dead) return;
     isAnimatingXP = true;
     let targetXp = state.xp + v;
     
@@ -497,9 +511,8 @@ function addXP(v) {
     }, 25);
 }
 
-// --- MINIJUEGOS CON INSTRUCCIONES ---
 function loadGameMenu() {
-    if (state.sick) return alert("¡Tu mascota está enferma!");
+    if (state.sick || state.dead) return alert("¡Tu mascota no puede jugar ahora!");
     gameIntervals.forEach(clearInterval); gameIntervals = []; state.busy = false; 
     const zone = document.getElementById('gameZone');
     const bConfig = gamesConfig[state.breed] || gamesConfig['husky'];
@@ -508,9 +521,9 @@ function loadGameMenu() {
     <div style="background:#111827; padding:10px; border-radius:12px; border:1px solid #374151; margin-bottom:15px; width:90%;">
         <p style="font-size:10px; color:var(--accent); font-weight:bold; margin:0 0 5px 0;">🎮 CÓMO JUGAR:</p>
         <ul style="font-size:9px; color:#d1d5db; margin:0; padding-left:15px;">
-            <li><strong>🍎 Atrapa:</strong> Clic en los objetos que caen (¡Atrapa las monedas!).</li>
-            <li><strong>⚡ Reflejos:</strong> Clic súper rápido al botón del centro.</li>
-            <li><strong>⏱️ Tiempo:</strong> Detén la barrita justo en la zona verde.</li>
+            <li><strong>🍎 Atrapa:</strong> Clic en los objetos que caen.</li>
+            <li><strong>⚡ Reflejos:</strong> Clic súper rápido.</li>
+            <li><strong>⏱️ Tiempo:</strong> Detén la línea en verde.</li>
         </ul>
     </div>
     <div style="display:grid; gap:10px; width:90%;">
@@ -528,7 +541,7 @@ function startMinigame(idx) {
     let score = 0;
     
     if(game.t === "catch") {
-        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Haz clic en los objetos para atraparlos!</p>`;
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Haz clic en los objetos!</p>`;
         const intv = setInterval(() => {
             const o = document.createElement('div'); o.className = 'mg-obj';
             o.innerHTML = Math.random() > 0.3 ? game.i : '🪙';
@@ -543,11 +556,11 @@ function startMinigame(idx) {
         gameIntervals.push(intv);
         setTimeout(() => finishMinigame(score * 10, score * 2), 8000); 
     } else if(game.t === "click") {
-        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Haz clic lo más rápido posible!</p><h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Clica rápido!</p><h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
         setTimeout(() => finishMinigame(score * 5, Math.floor(score/3)), 5000); 
     } else if (game.t === "timing") {
-        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Detén la línea en el bloque verde!</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Detén la línea en verde!</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
         let p = 0, d = 4;
         const m = setInterval(() => { p += d; if(p >= 190 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
         gameIntervals.push(m);
@@ -563,11 +576,11 @@ function finishMinigame(xp, extraCoins) {
     addXP(xp); state.busy = false; saveGame();
 }
 
-// --- TIENDA MASIVA DINÁMICA ---
 function openShop() {
+    if(state.dead) return;
     document.getElementById('shopCoins').innerText = state.coins;
     const listContainer = document.getElementById('shopListContainer');
-    listContainer.innerHTML = ''; // Limpiar tienda
+    listContainer.innerHTML = ''; 
     
     shopItemsConfig.forEach(item => {
         const hasItem = state.inventory.includes(item.id);
@@ -597,7 +610,7 @@ function buyItem(id, price) {
     if (state.coins >= price) {
         state.coins -= price; state.inventory.push(id);
         saveGame(); openShop(); 
-    } else alert("¡No tienes suficientes monedas! Juega minijuegos para ganar más.");
+    } else alert("¡No tienes suficientes monedas!");
 }
 
 function toggleEquip(id, slot) {
@@ -607,6 +620,7 @@ function toggleEquip(id, slot) {
 }
 
 function openOptions() {
+    if(state.dead) return;
     document.getElementById('optName').value = state.name;
     document.getElementById('optBreed').value = state.breed;
     document.getElementById('optBg').value = state.bg || 'bg_house'; 
@@ -627,7 +641,6 @@ function closeModals() {
     updateUI();
 }
 
-// --- ACTUALIZACIÓN DE INTERFAZ Y ETAPAS ---
 function updateUI() {
     document.getElementById('xpBar').style.width = state.xp+'%';
     document.getElementById('enBar').style.width = state.energy+'%';
@@ -643,7 +656,6 @@ function updateUI() {
     document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
     document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     
-    // Lógica de texto de las etapas
     let stageStr = 'CACHORRO';
     if (state.lv >= 10 && state.lv < 20) stageStr = 'JOVEN';
     else if (state.lv >= 20 && state.lv < 50) stageStr = 'ADULTO';
@@ -654,9 +666,13 @@ function updateUI() {
     const saBar = document.getElementById('saBar');
     const saTxt = document.getElementById('saTxt');
     
-    if (state.sick) {
+    if (state.sick && !state.dead) {
         healBtn.className = "btn-sick"; healBtn.style.cursor = "pointer"; healBtn.disabled = false;
-        saBar.style.width = "10%"; saBar.style.background = "var(--danger)"; saTxt.innerText = "ENFERMO";
+        saBar.style.width = "10%"; saBar.style.background = "var(--danger)"; 
+        saTxt.innerText = `CRÍTICO (${Math.ceil(state.deathTimer)}s)`;
+    } else if (state.dead) {
+        healBtn.className = ""; healBtn.style.background = "#374151"; healBtn.style.cursor = "not-allowed"; healBtn.disabled = true;
+        saBar.style.width = "0%"; saBar.style.background = "#374151"; saTxt.innerText = "FALLECIDO";
     } else {
         healBtn.className = ""; healBtn.style.background = "#374151"; healBtn.style.cursor = "not-allowed"; healBtn.disabled = true;
         saBar.style.width = "100%"; saBar.style.background = "var(--success)"; saTxt.innerText = "SANO";
@@ -678,10 +694,21 @@ window.onload = () => {
 
 function loop() {
     setInterval(() => {
+        if(state.dead) {
+            drawPet(); updateUI(); return; 
+        }
+
         state.tick++;
         if(state.tick % 25 === 0) state.frame = (state.frame + 1) % 2;
         
-        if(!state.busy && !state.sick) {
+        // El bucle corre cada 40ms (25 veces por segundo). 0.04 * 25 = 1 segundo real.
+        if (state.sick) {
+            state.deathTimer -= 0.04; 
+            if (state.deathTimer <= 0) {
+                state.deathTimer = 0;
+                triggerGameOver();
+            }
+        } else if(!state.busy) {
             state.hunger = Math.max(0, state.hunger - 0.01);
             state.energy = Math.max(0, state.energy - 0.005);
             state.clean = Math.max(0, state.clean - 0.008);
@@ -693,7 +720,7 @@ function loop() {
         }
         
         drawPet(); 
-        if(state.tick % 50 === 0) updateUI(); 
+        if(state.tick % 5 === 0) updateUI(); 
     }, 40);
     setInterval(saveGame, 30000);
 }
