@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>NeoPixel Pet: Evolución Total (25 Razas)</title>
+<title>NeoPixel Pet: Evolución Total (25 Razas + Tienda)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -44,6 +44,9 @@
   
   .save-notify { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; padding: 10px 20px; border-radius: 10px; font-size: 10px; font-weight: bold; opacity: 0; transition: 0.5s; z-index: 2000; }
   
+  .shop-list { max-height: 250px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px; }
+  .shop-list::-webkit-scrollbar { width: 8px; }
+  .shop-list::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
   .shop-item { background: #020617; border: 1px solid #374151; padding: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 </style>
 </head>
@@ -56,30 +59,18 @@
     <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--accent); margin-bottom:20px;">NUEVA MASCOTA</h2>
     <input id="pName" type="text" placeholder="Nombre..." maxlength="12" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
     <select id="pBreed" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-      <option value="husky">Husky Siberiano</option>
-      <option value="beagle">Beagle Sabueso</option>
-      <option value="pug">Pug Gracioso</option>
-      <option value="poodle">Poodle Elegante</option>
-      <option value="doberman">Doberman Fiel</option>
-      <option value="labrador">Labrador Dorado</option>
-      <option value="yorkie">Yorkie Terrier</option>
-      <option value="bulldog">Bulldog Fuerte</option>
-      <option value="chihuahua">Chihuahua Veloz</option>
-      <option value="dalmatian">Dálmata Veloz</option>
-      <option value="rottweiler">Rottweiler Guardia</option>
-      <option value="shiba">Shiba Inu</option>
-      <option value="corgi">Corgi Real</option>
-      <option value="boxer">Boxer Juguetón</option>
-      <option value="dane">Gran Danés</option>
-      <option value="schnauzer">Schnauzer Listo</option>
-      <option value="dachshund">Perro Salchicha</option>
-      <option value="pomeranian">Pomerania Pelusa</option>
-      <option value="shihtzu">Shih Tzu Zen</option>
-      <option value="collie">Border Collie</option>
-      <option value="basset">Basset Hound</option>
-      <option value="chow">Chow Chow</option>
-      <option value="mastiff">Mastín Inglés</option>
-      <option value="greyhound">Galgo Veloz</option>
+      <option value="husky">Husky Siberiano</option><option value="beagle">Beagle Sabueso</option>
+      <option value="pug">Pug Gracioso</option><option value="poodle">Poodle Elegante</option>
+      <option value="doberman">Doberman Fiel</option><option value="labrador">Labrador Dorado</option>
+      <option value="yorkie">Yorkie Terrier</option><option value="bulldog">Bulldog Fuerte</option>
+      <option value="chihuahua">Chihuahua Veloz</option><option value="dalmatian">Dálmata Veloz</option>
+      <option value="rottweiler">Rottweiler Guardia</option><option value="shiba">Shiba Inu</option>
+      <option value="corgi">Corgi Real</option><option value="boxer">Boxer Juguetón</option>
+      <option value="dane">Gran Danés</option><option value="schnauzer">Schnauzer Listo</option>
+      <option value="dachshund">Perro Salchicha</option><option value="pomeranian">Pomerania Pelusa</option>
+      <option value="shihtzu">Shih Tzu Zen</option><option value="collie">Border Collie</option>
+      <option value="basset">Basset Hound</option><option value="chow">Chow Chow</option>
+      <option value="mastiff">Mastín Inglés</option><option value="greyhound">Galgo Veloz</option>
       <option value="bernard">San Bernardo</option>
     </select>
     <select id="pBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
@@ -95,34 +86,20 @@
 <div id="optionsModal" class="modal-bg">
   <div class="card" style="width: 400px; text-align: center;">
     <h2 style="font-family:'Press Start 2P'; font-size:12px; color:white; margin-bottom:10px;">⚙️ OPCIONES</h2>
-    <p style="font-size:10px; color:#9ca3af; margin-bottom:20px;">Cambia tu mascota o escenario.</p>
-    
     <input id="optName" type="text" placeholder="Nuevo Nombre" maxlength="12" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
     <select id="optBreed" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
-      <option value="husky">Husky Siberiano</option>
-      <option value="beagle">Beagle Sabueso</option>
-      <option value="pug">Pug Gracioso</option>
-      <option value="poodle">Poodle Elegante</option>
-      <option value="doberman">Doberman Fiel</option>
-      <option value="labrador">Labrador Dorado</option>
-      <option value="yorkie">Yorkie Terrier</option>
-      <option value="bulldog">Bulldog Fuerte</option>
-      <option value="chihuahua">Chihuahua Veloz</option>
-      <option value="dalmatian">Dálmata Veloz</option>
-      <option value="rottweiler">Rottweiler Guardia</option>
-      <option value="shiba">Shiba Inu</option>
-      <option value="corgi">Corgi Real</option>
-      <option value="boxer">Boxer Juguetón</option>
-      <option value="dane">Gran Danés</option>
-      <option value="schnauzer">Schnauzer Listo</option>
-      <option value="dachshund">Perro Salchicha</option>
-      <option value="pomeranian">Pomerania Pelusa</option>
-      <option value="shihtzu">Shih Tzu Zen</option>
-      <option value="collie">Border Collie</option>
-      <option value="basset">Basset Hound</option>
-      <option value="chow">Chow Chow</option>
-      <option value="mastiff">Mastín Inglés</option>
-      <option value="greyhound">Galgo Veloz</option>
+      <option value="husky">Husky Siberiano</option><option value="beagle">Beagle Sabueso</option>
+      <option value="pug">Pug Gracioso</option><option value="poodle">Poodle Elegante</option>
+      <option value="doberman">Doberman Fiel</option><option value="labrador">Labrador Dorado</option>
+      <option value="yorkie">Yorkie Terrier</option><option value="bulldog">Bulldog Fuerte</option>
+      <option value="chihuahua">Chihuahua Veloz</option><option value="dalmatian">Dálmata Veloz</option>
+      <option value="rottweiler">Rottweiler Guardia</option><option value="shiba">Shiba Inu</option>
+      <option value="corgi">Corgi Real</option><option value="boxer">Boxer Juguetón</option>
+      <option value="dane">Gran Danés</option><option value="schnauzer">Schnauzer Listo</option>
+      <option value="dachshund">Perro Salchicha</option><option value="pomeranian">Pomerania Pelusa</option>
+      <option value="shihtzu">Shih Tzu Zen</option><option value="collie">Border Collie</option>
+      <option value="basset">Basset Hound</option><option value="chow">Chow Chow</option>
+      <option value="mastiff">Mastín Inglés</option><option value="greyhound">Galgo Veloz</option>
       <option value="bernard">San Bernardo</option>
     </select>
     <select id="optBg" style="width:100%; padding:15px; border-radius:12px; background:#020617; color:white; border:1px solid #374151;">
@@ -130,31 +107,21 @@
       <option value="bg_park">🌳 Parque Soleado</option>
       <option value="bg_dark">🌙 Habitación Oscura</option>
     </select>
-    
     <button onclick="saveOptions()" class="btn-accent" style="width:100%; margin-top:20px;">GUARDAR CAMBIOS</button>
     <button onclick="closeModals()" style="width:100%; margin-top:10px; background:transparent; border:1px solid #374151;">CANCELAR</button>
   </div>
 </div>
 
 <div id="shopModal" class="modal-bg">
-  <div class="card" style="width: 400px;">
-    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--coins); text-align:center;">🛒 TIENDA DE ACCESORIOS</h2>
-    <p style="text-align:center; font-size:12px; color:#9ca3af;">Tus Monedas: <strong id="shopCoins" style="color:var(--coins);">0</strong></p>
+  <div class="card" style="width: 450px;">
+    <h2 style="font-family:'Press Start 2P'; font-size:12px; color:var(--coins); text-align:center; margin-bottom:5px;">🛒 TIENDA DE ACCESORIOS</h2>
+    <p style="text-align:center; font-size:10px; color:#22c55e; margin-bottom:15px;">¡Juega minijuegos para ganar más monedas!</p>
+    <p style="text-align:center; font-size:12px; color:#9ca3af; margin-bottom:15px;">Tus Monedas: <strong id="shopCoins" style="color:var(--coins);">0</strong></p>
     
-    <div class="shop-item">
-      <div><strong>Sombrero de Copa</strong><br><span style="font-size:10px; color:#9ca3af;">Elegancia pura</span></div>
-      <button onclick="buyItem('tophat', 100)" id="btn_tophat" style="background:var(--coins); color:black;">100 🪙</button>
-    </div>
-    <div class="shop-item">
-      <div><strong>Collar Rojo</strong><br><span style="font-size:10px; color:#9ca3af;">Clásico y seguro</span></div>
-      <button onclick="buyItem('redcollar', 50)" id="btn_redcollar" style="background:var(--coins); color:black;">50 🪙</button>
-    </div>
-    <div class="shop-item">
-      <div><strong>Lazo Rosado</strong><br><span style="font-size:10px; color:#9ca3af;">Muy tierno</span></div>
-      <button onclick="buyItem('pinkbow', 75)" id="btn_pinkbow" style="background:var(--coins); color:black;">75 🪙</button>
-    </div>
+    <div id="shopListContainer" class="shop-list">
+        </div>
 
-    <button onclick="closeModals()" style="width:100%; margin-top:15px; border:1px solid #374151;">CERRAR</button>
+    <button onclick="closeModals()" style="width:100%; margin-top:10px; border:1px solid #374151;">CERRAR</button>
   </div>
 </div>
 
@@ -186,7 +153,7 @@
       <button onclick="performAction('play')" class="btn-accent">🎾 JUGAR</button>
       <button onclick="performAction('sleep')" style="background:var(--warning)">😴 DORMIR</button>
       <button onclick="performAction('clean')" style="background:var(--success)">🧼 LIMPIAR</button>
-      <button onclick="openShop()" style="background:var(--coins); color:black;">🛒 TIENDA</button>
+      <button onclick="openShop()" style="background:var(--coins); color:black;">🛒 TIENDA (30)</button>
       <button id="healBtn" onclick="performAction('heal')" style="background:#374151; color:#9ca3af; cursor:not-allowed;">💊 CURAR (10🪙)</button>
       
       <button onclick="openOptions()" style="background:#374151; color:#d1d5db; grid-column: span 2;">⚙️ OPCIONES (RAZA Y ESCENARIO)</button>
@@ -215,7 +182,7 @@
     </div>
 
     <div id="gameZone">
-        <p style="color:#4b5563; font-weight:bold; text-align:center;">¡Juega para ganar XP y Monedas!<br><br><span style="font-size:10px;">Atrapa objetos, pon a prueba tus reflejos o calcula el tiempo exacto.</span></p>
+        <p style="color:#4b5563; font-weight:bold; text-align:center; padding: 0 10px;">¡Juega minijuegos para ganar XP y Monedas para la tienda!</p>
     </div>
     <button onclick="loadGameMenu()" class="btn-accent" style="width:100%; margin-top:15px; font-size:14px;">🎮 ABRIR MINIJUEGOS</button>
   </div>
@@ -223,7 +190,7 @@
 
 <script>
 // --- LÓGICA DE PERSISTENCIA ---
-const SAVE_KEY = 'NEOPIXEL_PET_V4'; // Actualizado para recargar todas las razas
+const SAVE_KEY = 'NEOPIXEL_PET_V5'; 
 
 const defaultState = {
   name: 'Doggo', breed: 'husky', bg: 'bg_house',
@@ -238,6 +205,49 @@ let gameIntervals = [];
 const canvas = document.getElementById('petCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
+
+// --- LOS 30 ÍTEMS DE LA TIENDA ---
+const shopItemsConfig = [
+    // Sombreros (Hats)
+    {id: 'tophat', name: 'Sombrero Copa', desc: 'Elegancia oscura', price: 100, slot: 'head', type: 'hat', c1: '#111827', c2: '#ef4444'},
+    {id: 'whitehat', name: 'Sombrero Blanco', desc: 'Puro estilo', price: 120, slot: 'head', type: 'hat', c1: '#f8fafc', c2: '#3b82f6'},
+    {id: 'brownhat', name: 'Sombrero Vaquero', desc: 'Yee-haw!', price: 150, slot: 'head', type: 'hat', c1: '#78350f', c2: '#fbbf24'},
+    {id: 'magichat', name: 'Sombrero Mágico', desc: 'Abracadabra', price: 200, slot: 'head', type: 'hat', c1: '#4c1d95', c2: '#fbbf24'},
+    {id: 'greenhat', name: 'Sombrero Duende', desc: 'Suerte extra', price: 110, slot: 'head', type: 'hat', c1: '#166534', c2: '#fef08a'},
+    {id: 'bluehat', name: 'Sombrero Azul', desc: 'Tranquilidad', price: 110, slot: 'head', type: 'hat', c1: '#1e3a8a', c2: '#93c5fd'},
+    
+    // Lazos (Bows)
+    {id: 'pinkbow', name: 'Lazo Rosado', desc: 'Muy tierno', price: 75, slot: 'head', type: 'bow', c1: '#ec4899'},
+    {id: 'bluebow', name: 'Lazo Azul', desc: 'Elegante', price: 75, slot: 'head', type: 'bow', c1: '#3b82f6'},
+    {id: 'redbow', name: 'Lazo Rojo', desc: 'Pasión', price: 75, slot: 'head', type: 'bow', c1: '#ef4444'},
+    {id: 'yellowbow', name: 'Lazo Amarillo', desc: 'Alegre', price: 75, slot: 'head', type: 'bow', c1: '#eab308'},
+    {id: 'purplebow', name: 'Lazo Morado', desc: 'Misterio', price: 75, slot: 'head', type: 'bow', c1: '#a855f7'},
+    {id: 'greenbow', name: 'Lazo Verde', desc: 'Naturaleza', price: 75, slot: 'head', type: 'bow', c1: '#22c55e'},
+    {id: 'blackbow', name: 'Lazo Gótico', desc: 'Oscuridad', price: 80, slot: 'head', type: 'bow', c1: '#1f2937'},
+    {id: 'whitebow', name: 'Lazo Níveo', desc: 'Paz', price: 80, slot: 'head', type: 'bow', c1: '#f8fafc'},
+
+    // Coronas (Crowns)
+    {id: 'goldcrown', name: 'Corona Oro', desc: 'Para reyes', price: 500, slot: 'head', type: 'crown', c1: '#fbbf24'},
+    {id: 'silvercrown', name: 'Corona Plata', desc: 'Príncipes', price: 300, slot: 'head', type: 'crown', c1: '#94a3b8'},
+    {id: 'bronzecrown', name: 'Corona Bronce', desc: 'Tercer lugar', price: 150, slot: 'head', type: 'crown', c1: '#b45309'},
+
+    // Collares (Collars)
+    {id: 'redcollar', name: 'Collar Rojo', desc: 'Clásico seguro', price: 50, slot: 'neck', type: 'collar', c1: '#ef4444', c2: '#fbbf24'},
+    {id: 'bluecollar', name: 'Collar Azul', desc: 'Océano', price: 50, slot: 'neck', type: 'collar', c1: '#3b82f6', c2: '#fbbf24'},
+    {id: 'greencollar', name: 'Collar Verde', desc: 'Bosque', price: 50, slot: 'neck', type: 'collar', c1: '#22c55e', c2: '#fbbf24'},
+    {id: 'blackcollar', name: 'Collar Punk', desc: 'Rudo', price: 60, slot: 'neck', type: 'collar', c1: '#111827', c2: '#94a3b8'},
+    {id: 'goldcollar', name: 'Collar Rico', desc: 'Puro lujo', price: 200, slot: 'neck', type: 'collar', c1: '#fbbf24', c2: '#fef08a'},
+    {id: 'purplecollar', name: 'Collar Real', desc: 'Majestuoso', price: 55, slot: 'neck', type: 'collar', c1: '#a855f7', c2: '#fbbf24'},
+    {id: 'pinkcollar', name: 'Collar Fresa', desc: 'Dulce', price: 55, slot: 'neck', type: 'collar', c1: '#ec4899', c2: '#fbbf24'},
+
+    // Bufandas (Scarves)
+    {id: 'redscarf', name: 'Bufanda Roja', desc: 'Calientita', price: 90, slot: 'neck', type: 'scarf', c1: '#ef4444'},
+    {id: 'bluescarf', name: 'Bufanda Azul', desc: 'Invierno', price: 90, slot: 'neck', type: 'scarf', c1: '#3b82f6'},
+    {id: 'greenscarf', name: 'Bufanda Verde', desc: 'Eco-friendly', price: 90, slot: 'neck', type: 'scarf', c1: '#22c55e'},
+    {id: 'yellowscarf', name: 'Bufanda Sol', desc: 'Radiante', price: 90, slot: 'neck', type: 'scarf', c1: '#eab308'},
+    {id: 'purplescarf', name: 'Bufanda Uva', desc: 'Con estilo', price: 90, slot: 'neck', type: 'scarf', c1: '#a855f7'},
+    {id: 'blackscarf', name: 'Bufanda Ninja', desc: 'Sigilo', price: 100, slot: 'neck', type: 'scarf', c1: '#1f2937'}
+];
 
 function saveGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
@@ -261,58 +271,55 @@ function resetEverything() {
     }
 }
 
-// --- DIBUJO PIXEL ART ---
+// --- DIBUJO PIXEL ART (ACTUALIZADO PARA ITEMS DINÁMICOS Y ETAPAS) ---
 function drawPet() {
   ctx.clearRect(0, 0, 250, 250);
 
   // Escenarios dinámicos
   const PERSPECTIVE_FLOOR_Y = 200;
   if(state.bg === 'bg_house') {
-      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200); // Pared
-      ctx.fillStyle = '#fde68a'; ctx.fillRect(20, 40, 60, 60); // Ventana cuadrada
-      ctx.fillStyle = '#6b7280'; ctx.fillRect(20, 70, 60, 4); // Reja ventana
+      ctx.fillStyle = '#fef3c7'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(20, 40, 60, 60);
+      ctx.fillStyle = '#6b7280'; ctx.fillRect(20, 70, 60, 4); 
       ctx.fillStyle = '#6b7280'; ctx.fillRect(48, 40, 4, 60); 
-      ctx.fillStyle = '#78350f'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Suelo madera
+      ctx.fillStyle = '#78350f'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   } else if(state.bg === 'bg_park') {
-      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200); // Cielo
-      ctx.fillStyle = '#fef08a'; ctx.fillRect(180, 20, 40, 40); // Sol cuadrado
-      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Pasto
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#fef08a'; ctx.fillRect(180, 20, 40, 40);
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   } else {
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200); // Noche
-      ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50); // Suelo oscuro
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 250, 200);
+      ctx.fillStyle = '#111827'; ctx.fillRect(0, PERSPECTIVE_FLOOR_Y, 250, 50);
   }
 
-  let stage = 0; 
-  if (state.lv >= 5 && state.lv < 10) stage = 1;
-  if (state.lv >= 10) stage = 2;
+  // Lógica de Etapas Mejorada
+  let scale = 1.5; // Nivel 1-9 (Cachorro)
+  if (state.lv >= 10 && state.lv < 20) scale = 2; // Nivel 10-19 (Joven)
+  else if (state.lv >= 20) scale = 2.5; // Nivel 20+ (Adulto y Viejito)
   
-  const scale = stage === 0 ? 1.5 : (stage === 1 ? 2 : 2.5);
   const bx = 125, by = 160; 
 
   const isTired = state.energy < 30;
   let bounce = Math.floor(Math.sin(state.tick * (isTired || state.sick ? 0.05 : 0.15)) * 3);
   if (state.anim === 'play') bounce = -Math.abs(Math.floor(Math.sin(state.tick * 0.3) * 15));
 
-  // --- Paletas de colores expandidas ---
+  // Paleta de colores 
   const colors = {
-    // Originales/Corregidas
     husky: ['#64748b', '#f8fafc', '#22d3ee'], beagle: ['#b45309', '#ffffff', '#000'],
     pug: ['#d4d4d8', '#000000', '#000'], poodle: ['#fdf4ff', '#f0abfc', '#000'],
     doberman: ['#1c1917', '#b45309', '#000'], labrador: ['#fbbf24', '#fef08a', '#000'],
-    yorkie: ['#64748b', '#fcd34d', '#000'], // MODIFICADO: Medio gris/tostado
-    // Nuevas
-    bulldog: ['#a67c52', '#000', '#000'], chihuahua: ['#fcd34d', '#fef3c7', '#000'],
-    dalmatian: ['#ffffff', '#000000', '#000'], rottweiler: ['#1c1917', '#b45309', '#000'],
-    shiba: ['#ea580c', '#ffffff', '#000'], corgi: ['#f97316', '#ffffff', '#000'],
-    boxer: ['#b45309', '#ffffff', '#000'], dane: ['#78716c', '#000000', '#000'],
-    schnauzer: ['#78716c', '#d1d5db', '#000'], dachshund: ['#78350f', '#fbbf24', '#000'],
-    pomeranian: ['#f97316', '#ffedd5', '#000'], shihtzu: ['#e7e5e4', '#78716c', '#000'],
-    collie: ['#b45309', '#ffffff', '#000'], basset: ['#78350f', '#ffffff', '#000'],
-    chow: ['#ea580c', '#000', '#000'], mastiff: ['#a67c52', '#1c1917', '#000'],
-    greyhound: ['#9ca3af', '#f3f4f6', '#000'], bernard: ['#78350f', '#ffffff', '#000']
+    yorkie: ['#64748b', '#fcd34d', '#000'], bulldog: ['#a67c52', '#000', '#000'],
+    chihuahua: ['#fcd34d', '#fef3c7', '#000'], dalmatian: ['#ffffff', '#000000', '#000'],
+    rottweiler: ['#1c1917', '#b45309', '#000'], shiba: ['#ea580c', '#ffffff', '#000'],
+    corgi: ['#f97316', '#ffffff', '#000'], boxer: ['#b45309', '#ffffff', '#000'],
+    dane: ['#78716c', '#000000', '#000'], schnauzer: ['#78716c', '#d1d5db', '#000'],
+    dachshund: ['#78350f', '#fbbf24', '#000'], pomeranian: ['#f97316', '#ffedd5', '#000'],
+    shihtzu: ['#e7e5e4', '#78716c', '#000'], collie: ['#b45309', '#ffffff', '#000'],
+    basset: ['#78350f', '#ffffff', '#000'], chow: ['#ea580c', '#000', '#000'],
+    mastiff: ['#a67c52', '#1c1917', '#000'], greyhound: ['#9ca3af', '#f3f4f6', '#000'],
+    bernard: ['#78350f', '#ffffff', '#000']
   }[state.breed] || ['#b45309', '#ffffff', '#000'];
 
-  // Razas con orejas caídas configuradas
   const floppyEars = ['beagle', 'pug', 'labrador', 'bulldog', 'corgi', 'boxer', 'dachshund', 'shihtzu', 'basset', 'bernard'];
   const hasFloppyEars = floppyEars.includes(state.breed);
 
@@ -359,20 +366,43 @@ function drawPet() {
       }
   }
 
-  if(state.equipment.head === 'tophat') {
-      ctx.fillStyle = '#111827'; ctx.fillRect(2 * scale, -8 * scale, 10 * scale, 8 * scale);
-      ctx.fillRect(-1 * scale, -2 * scale, 16 * scale, 2 * scale);
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(2 * scale, -4 * scale, 10 * scale, 2 * scale);
-  } else if (state.equipment.head === 'pinkbow') {
-      ctx.fillStyle = '#ec4899'; ctx.fillRect(4 * scale, -3 * scale, 6 * scale, 4 * scale);
-      ctx.fillRect(1 * scale, -4 * scale, 4 * scale, 6 * scale); ctx.fillRect(9 * scale, -4 * scale, 4 * scale, 6 * scale);
+  // Viejito details (Nivel 50+)
+  if (state.lv >= 50) {
+      ctx.fillStyle = '#d1d5db'; // Pelaje grisoso
+      ctx.fillRect(8 * scale, 1 * scale, 4 * scale, 1 * scale); // Cejas canosas
+      ctx.fillRect(10 * scale, 8 * scale, 4 * scale, 3 * scale); // Barbita canosa
   }
 
+  // DIBUJAR EQUIPAMIENTO DE CABEZA DINÁMICO
+  const eqHead = shopItemsConfig.find(i => i.id === state.equipment.head);
+  if (eqHead) {
+      if (eqHead.type === 'hat') {
+          ctx.fillStyle = eqHead.c1; ctx.fillRect(2 * scale, -8 * scale, 10 * scale, 8 * scale);
+          ctx.fillRect(-1 * scale, -2 * scale, 16 * scale, 2 * scale);
+          ctx.fillStyle = eqHead.c2; ctx.fillRect(2 * scale, -4 * scale, 10 * scale, 2 * scale);
+      } else if (eqHead.type === 'bow') {
+          ctx.fillStyle = eqHead.c1; ctx.fillRect(4 * scale, -3 * scale, 6 * scale, 4 * scale);
+          ctx.fillRect(1 * scale, -4 * scale, 4 * scale, 6 * scale); ctx.fillRect(9 * scale, -4 * scale, 4 * scale, 6 * scale);
+      } else if (eqHead.type === 'crown') {
+          ctx.fillStyle = eqHead.c1;
+          ctx.fillRect(1 * scale, -6 * scale, 12 * scale, 4 * scale);
+          ctx.fillRect(1 * scale, -8 * scale, 2 * scale, 2 * scale);
+          ctx.fillRect(6 * scale, -8 * scale, 2 * scale, 2 * scale);
+          ctx.fillRect(11 * scale, -8 * scale, 2 * scale, 2 * scale);
+      }
+  }
   ctx.restore(); 
 
-  if(state.equipment.neck === 'redcollar') {
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(4 * scale, -2 * scale, 6 * scale, 3 * scale);
-      ctx.fillStyle = '#fbbf24'; ctx.fillRect(6 * scale, -1 * scale, 2 * scale, 2 * scale); 
+  // DIBUJAR EQUIPAMIENTO DE CUELLO DINÁMICO
+  const eqNeck = shopItemsConfig.find(i => i.id === state.equipment.neck);
+  if (eqNeck) {
+      if (eqNeck.type === 'collar') {
+          ctx.fillStyle = eqNeck.c1; ctx.fillRect(4 * scale, -2 * scale, 6 * scale, 3 * scale);
+          ctx.fillStyle = eqNeck.c2; ctx.fillRect(6 * scale, -1 * scale, 2 * scale, 2 * scale); 
+      } else if (eqNeck.type === 'scarf') {
+          ctx.fillStyle = eqNeck.c1; ctx.fillRect(3 * scale, -2 * scale, 8 * scale, 4 * scale);
+          ctx.fillRect(9 * scale, 0, 3 * scale, 5 * scale);
+      }
   }
 
   if (state.anim === 'feed') { 
@@ -389,7 +419,6 @@ function drawPet() {
   ctx.filter = 'none';
 }
 
-// --- MINIJUEGOS TEMÁTICOS (CONFIGURACIÓN EXTRA) ---
 const gamesConfig = {
     husky: [ {n: "❄️ Pesca Hielo", t: "catch", i: "🐟"}, {n: "🛷 Carrera", t: "click", i: "🐾"}, {n: "🌬️ Ventisca", t: "timing"} ],
     beagle: [ {n: "🦊 Rastro", t: "catch", i: "🦊"}, {n: "🐰 Liebre", t: "timing"}, {n: "🌳 Aullido", t: "click", i: "🎵"} ],
@@ -412,13 +441,12 @@ const gamesConfig = {
     shihtzu: [ {n: "🧘 Zen", t: "timing"}, {n: "🏵️ Flor", t: "catch", i: "🏵️"}, {n: "👑 Rey", t: "click", i: "👑"} ],
     collie: [ {n: "🐑 Ovejas", t: "catch", i: "🐑"}, {n: "🥏 Frisbee", t: "timing"}, {n: "🧩 Puzzle", t: "click", i: "🧩"} ],
     basset: [ {n: "👂 Orejas", t: "timing"}, {n: "🦡 Tejón", t: "catch", i: "🦡"}, {n: "💤 Siesta", t: "click", i: "💤"} ],
-    chow: [ {n: "🦁 León", t: "timing"}, {n: "👅 Lengua", t: "click", i: "👅"}, {n: " dumplings Dumpling", t: "catch", i: "🥟"} ],
+    chow: [ {n: "🦁 León", t: "timing"}, {n: "👅 Lengua", t: "click", i: "👅"}, {n: "🥟 Dumpling", t: "catch", i: "🥟"} ],
     mastiff: [ {n: "🛡️ Escudo", t: "click", i: "🛡️"}, {n: "🐻 Oso", t: "timing"}, {n: "🍖 Gigante", t: "catch", i: "🍖"} ],
     greyhound: [ {n: "🐇 Liebre", t: "catch", i: "🐇"}, {n: "⚡ Rayo", t: "timing"}, {n: "🥇 Medalla", t: "click", i: "🥇"} ],
     bernard: [ {n: "🛢️ Barril", t: "click", i: "🛢️"}, {n: "🏔️ Nieve", t: "timing"}, {n: "⛑️ Rescate", t: "catch", i: "⛑️"} ]
 };
 
-// --- SISTEMAS DE SALUD Y ACCIONES (PRESERVADO V3) ---
 function performAction(type) {
     if(state.busy) return;
     state.busy = true;
@@ -469,15 +497,23 @@ function addXP(v) {
     }, 25);
 }
 
-// --- MINIJUEGOS Y MONEDAS (ACTUALIZADO CON TEMA) ---
+// --- MINIJUEGOS CON INSTRUCCIONES ---
 function loadGameMenu() {
     if (state.sick) return alert("¡Tu mascota está enferma!");
     gameIntervals.forEach(clearInterval); gameIntervals = []; state.busy = false; 
     const zone = document.getElementById('gameZone');
     const bConfig = gamesConfig[state.breed] || gamesConfig['husky'];
     
-    zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:15px;">ELIGE UN JUEGO (${state.breed.toUpperCase()})</p>
-    <div style="display:grid; gap:10px; width:85%;">
+    zone.innerHTML = `
+    <div style="background:#111827; padding:10px; border-radius:12px; border:1px solid #374151; margin-bottom:15px; width:90%;">
+        <p style="font-size:10px; color:var(--accent); font-weight:bold; margin:0 0 5px 0;">🎮 CÓMO JUGAR:</p>
+        <ul style="font-size:9px; color:#d1d5db; margin:0; padding-left:15px;">
+            <li><strong>🍎 Atrapa:</strong> Clic en los objetos que caen (¡Atrapa las monedas!).</li>
+            <li><strong>⚡ Reflejos:</strong> Clic súper rápido al botón del centro.</li>
+            <li><strong>⏱️ Tiempo:</strong> Detén la barrita justo en la zona verde.</li>
+        </ul>
+    </div>
+    <div style="display:grid; gap:10px; width:90%;">
         <button onclick="startMinigame(0)" class="btn-accent">${bConfig[0].n}</button>
         <button onclick="startMinigame(1)" class="btn-accent">${bConfig[1].n}</button>
         <button onclick="startMinigame(2)" class="btn-accent">${bConfig[2].n}</button>
@@ -492,6 +528,7 @@ function startMinigame(idx) {
     let score = 0;
     
     if(game.t === "catch") {
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Haz clic en los objetos para atraparlos!</p>`;
         const intv = setInterval(() => {
             const o = document.createElement('div'); o.className = 'mg-obj';
             o.innerHTML = Math.random() > 0.3 ? game.i : '🪙';
@@ -506,11 +543,11 @@ function startMinigame(idx) {
         gameIntervals.push(intv);
         setTimeout(() => finishMinigame(score * 10, score * 2), 8000); 
     } else if(game.t === "click") {
-        zone.innerHTML = `<h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Haz clic lo más rápido posible!</p><h2 id="sc" style="font-size:40px; margin:0">0</h2><button id="hit" style="font-size:50px; width:130px; height:130px; border-radius:50%; background:#1f2937; color:white;">${game.i}</button>`;
         document.getElementById('hit').onclick = () => { score++; document.getElementById('sc').innerText = score; };
         setTimeout(() => finishMinigame(score * 5, Math.floor(score/3)), 5000); 
     } else if (game.t === "timing") {
-        zone.innerHTML = `<p style="font-size:10px; margin-bottom:10px; color:#9ca3af;">${game.n}</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
+        zone.innerHTML = `<p style="font-size:10px; color:#9ca3af; margin-bottom:10px;">¡Detén la línea en el bloque verde!</p><div style="width:200px; height:24px; background:#1f2937; position:relative; border-radius:12px;"><div id="ptr" style="width:8px; height:100%; background:white; position:absolute; left:0;"></div><div style="width:40px; height:100%; background:var(--success); margin:0 auto; opacity:0.5;"></div></div><button id="go" style="margin-top:25px;">¡YA!</button>`;
         let p = 0, d = 4;
         const m = setInterval(() => { p += d; if(p >= 190 || p <= 0) d *= -1; document.getElementById('ptr').style.left = p + 'px'; }, 20);
         gameIntervals.push(m);
@@ -526,21 +563,47 @@ function finishMinigame(xp, extraCoins) {
     addXP(xp); state.busy = false; saveGame();
 }
 
-// --- MENÚ OPCIONES / TIENDA (PRESERVADO V3) ---
+// --- TIENDA MASIVA DINÁMICA ---
 function openShop() {
     document.getElementById('shopCoins').innerText = state.coins;
-    const items = ['tophat', 'redcollar', 'pinkbow'];
-    items.forEach(item => {
-        const btn = document.getElementById('btn_' + item);
-        if (state.inventory.includes(item)) {
-            const isEquipped = state.equipment.head === item || state.equipment.neck === item;
-            btn.innerText = isEquipped ? "QUITAR" : "PONER";
-            btn.style.background = isEquipped ? "#374151" : "var(--success)";
-            btn.style.color = "white";
-            btn.onclick = () => toggleEquip(item);
-        }
+    const listContainer = document.getElementById('shopListContainer');
+    listContainer.innerHTML = ''; // Limpiar tienda
+    
+    shopItemsConfig.forEach(item => {
+        const hasItem = state.inventory.includes(item.id);
+        const isEquipped = state.equipment[item.slot] === item.id;
+        
+        let btnText = hasItem ? (isEquipped ? "QUITAR" : "PONER") : `${item.price} 🪙`;
+        let btnBg = hasItem ? (isEquipped ? "#374151" : "var(--success)") : "var(--coins)";
+        let btnColor = hasItem && !isEquipped ? "white" : "black";
+        if(hasItem && isEquipped) btnColor = "white";
+
+        const div = document.createElement('div');
+        div.className = 'shop-item';
+        div.innerHTML = `
+            <div><strong>${item.name}</strong><br><span style="font-size:10px; color:#9ca3af;">${item.desc}</span></div>
+            <button onclick="${hasItem ? `toggleEquip('${item.id}', '${item.slot}')` : `buyItem('${item.id}', ${item.price})`}" 
+                    style="background:${btnBg}; color:${btnColor}; min-width:80px;">
+                ${btnText}
+            </button>
+        `;
+        listContainer.appendChild(div);
     });
+
     document.getElementById('shopModal').style.display = 'flex';
+}
+
+function buyItem(id, price) {
+    if (state.coins >= price) {
+        state.coins -= price; state.inventory.push(id);
+        saveGame(); openShop(); 
+    } else alert("¡No tienes suficientes monedas! Juega minijuegos para ganar más.");
+}
+
+function toggleEquip(id, slot) {
+    if (state.equipment[slot] === id) state.equipment[slot] = null; 
+    else state.equipment[slot] = id; 
+    saveGame(); drawPet(); openShop();
 }
 
 function openOptions() {
@@ -554,10 +617,7 @@ function saveOptions() {
     state.name = document.getElementById('optName').value || 'Doggo';
     state.breed = document.getElementById('optBreed').value;
     state.bg = document.getElementById('optBg').value; 
-    closeModals();
-    saveGame();
-    drawPet();
-    updateUI();
+    closeModals(); saveGame(); drawPet(); updateUI();
 }
 
 function closeModals() {
@@ -567,22 +627,7 @@ function closeModals() {
     updateUI();
 }
 
-function buyItem(id, price) {
-    if (state.coins >= price) {
-        state.coins -= price; state.inventory.push(id);
-        saveGame(); openShop(); 
-    } else alert("¡No tienes suficientes monedas!");
-}
-
-function toggleEquip(id) {
-    const isHead = id === 'tophat' || id === 'pinkbow';
-    const slot = isHead ? 'head' : 'neck';
-    if (state.equipment[slot] === id) state.equipment[slot] = null; 
-    else state.equipment[slot] = id; 
-    saveGame(); drawPet(); openShop();
-}
-
-// --- INICIALIZACIÓN Y BUCLE (PRESERVADO V3) ---
+// --- ACTUALIZACIÓN DE INTERFAZ Y ETAPAS ---
 function updateUI() {
     document.getElementById('xpBar').style.width = state.xp+'%';
     document.getElementById('enBar').style.width = state.energy+'%';
@@ -598,9 +643,11 @@ function updateUI() {
     document.getElementById('lvLabel').innerText = 'LV ' + state.lv;
     document.getElementById('nameLabel').innerText = state.name.toUpperCase();
     
+    // Lógica de texto de las etapas
     let stageStr = 'CACHORRO';
-    if (state.lv >= 5 && state.lv < 10) stageStr = 'JOVEN';
-    if (state.lv >= 10) stageStr = 'ADULTO';
+    if (state.lv >= 10 && state.lv < 20) stageStr = 'JOVEN';
+    else if (state.lv >= 20 && state.lv < 50) stageStr = 'ADULTO';
+    else if (state.lv >= 50) stageStr = 'VIEJITO 👴🐶';
     document.getElementById('stageLabel').innerText = 'ETAPA: ' + stageStr;
 
     const healBtn = document.getElementById('healBtn');
